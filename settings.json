@@ -12,6 +12,12 @@
             "repo": "repletsin5/lunar-api",
             "folder": "/",
             "type": "fabric"
+        },
+        {
+            "provider": "github",
+            "repo": "Lelebees/better-slabs-cosmic_reach/",
+            "folder": "/",
+            "type": "fabric"
         }
     ],
     "rootId": "de.jojojux.crm-repo"
