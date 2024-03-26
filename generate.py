@@ -97,17 +97,15 @@ def _generate_fabric_mod(settings, repo, latest_release, mod_json, properties):
         print(properties)
     else:
         mod_data = {}
-    id_ = mod_data.get("id") or f"io.github.{repo.owner.login}.{repo.name}"
+    # pre: mod_data.get("id") or 
+    id_ = f"io.github.{repo.owner.login}.{repo.name}"
     if settings.get("id"):
         id_ = settings["id"]
     name = mod_data.get("name") or repo.name
     desc = mod_data.get("description") or repo.description
-    authors = mod_data.get("authors") or [
-        repo.owner.login,
-        *[c.login for c in repo.get_contributors()],
-    ]
-    print(mod_data, latest_release.tag_name)
-    version = mod_data.get("version") or latest_release.tag_name.removeprefix("v")
+    authors = mod_data.get("authors") or [c.login for c in repo.get_contributors()]
+    print(mod_data, latest_release if isinstance(latest_release, str) else latest_release.tag_name)
+    version = mod_data.get("version") or (latest_release if isinstance(latest_release, str) else latest_release.tag_name).removeprefix("v")
     depends = {
         key: value.removeprefix(">=")
         for key, value in _parse_fabric_mod(
@@ -126,9 +124,12 @@ def _generate_fabric_mod(settings, repo, latest_release, mod_json, properties):
     deps = []
     for thing, version in depends.items():
         deps.append(Dependency(id=thing, version=version, source="unknown"))
-    downloads = latest_release.get_assets()
-    downloads = [x for x in downloads if x.name.endswith(".jar")]
-    downloads = sorted(downloads, key=lambda x: x.created_at, reverse=True)
+    if not isinstance(latest_release, str):
+        downloads = latest_release.get_assets()
+        downloads = [x for x in downloads if x.name.endswith(".jar")]
+        downloads = sorted(downloads, key=lambda x: x.created_at, reverse=True)
+    else:
+        downloads = []
     return Mod(
         id=id_,
         name=name,
@@ -144,27 +145,33 @@ def _generate_fabric_mod(settings, repo, latest_release, mod_json, properties):
 
 def _gh_get_mod(settings):
     repo = g.get_repo(settings["repo"])
-    latest_release = repo.get_latest_release()
+    if settings.get("tag") is not None:
+        if settings["tag"] == False:
+            latest_release = None
+        else:
+            latest_release = repo.get_release(settings["tag"])
+    else:
+        latest_release = repo.get_latest_release()
     if settings.get("folder"):
         folder = settings["folder"].strip("/")
     if settings["type"] == "fabric":
         try:
             mod_json = repo.get_contents(
                 f"{folder}/src/main/resources/fabric.mod.json",
-                ref=latest_release.tag_name,
+                ref=latest_release.tag_name if latest_release else settings.get("branch"),
             )
         except Exception as e:
             print(f"WARNING: FAIL on {settings['repo']}, MODFILE NOT FOUND: ", e)
             mod_json = None
         try:
             properties = repo.get_contents(
-                f"{folder}/build.gradle.kts", ref=latest_release.tag_name
+                f"{folder}/build.gradle.kts", ref=latest_release.tag_name if latest_release else settings.get("branch")
             )
         except Exception as e:
             print(f"WARNING: FAIL on {settings['repo']}, PROPERTIES NOT FOUND: ", e)
             properties = None
         return _generate_fabric_mod(
-            settings, repo, latest_release, mod_json, properties
+            settings, repo, latest_release if latest_release else settings.get("branch"), mod_json, properties
         )
 
 
