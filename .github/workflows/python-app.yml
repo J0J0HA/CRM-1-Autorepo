@@ -29,7 +29,7 @@ jobs:
         poetry install
     - name: Generate repo
       run: |
-        export GITHUB_TOKEN = ${{ github.token }}
+        echo "GITHUB_TOKEN = ${{ github.token }}" >> ".env"
         poetry run python generate.py
     - name: Upload GitHub Pages artifact
       uses: actions/upload-pages-artifact@v3.0.1
