@@ -38,10 +38,22 @@ class Mod:
     ext: dict
 
 
+@dataclass_json
+@dataclass
+class ModMetaless:
+    version: str
+    game_version: str
+    url: str
+    deps: list[Dependency]
+    ext: dict
+
+
 def _parse_build_gradle(content):
     properties_obj = content[content.find("object Properties {") :]
     properties_obj = properties_obj[: properties_obj.find("}")]
-    properties_obj = properties_obj.removeprefix("object Properties {").removesuffix("}")
+    properties_obj = properties_obj.removeprefix("object Properties {").removesuffix(
+        "}"
+    )
     properties_obj_list = properties_obj.split("\n")
     properties_obj_list = [x.strip() for x in properties_obj_list]
     properties_obj_result = {}
@@ -54,7 +66,9 @@ def _parse_build_gradle(content):
             properties_obj_result[key] = value
     properties_val = content[content.find("val properties = mapOf(") :]
     properties_val = properties_val[: properties_val.find(")")]
-    properties_val = properties_val.removeprefix("val properties = mapOf(").removesuffix(")")
+    properties_val = properties_val.removeprefix(
+        "val properties = mapOf("
+    ).removesuffix(")")
     properties_val_list = properties_val.split(",")
     properties_val_list = [x.strip() for x in properties_val_list]
     properties_val_result = {}
@@ -63,7 +77,7 @@ def _parse_build_gradle(content):
             prop = prop.strip()
             key, value = prop.split(" to ")
             key = key.removeprefix('"').removesuffix('"')
-            value = value.removeprefix('Properties.')
+            value = value.removeprefix("Properties.")
             properties_val_result[key] = properties_obj_result[value]
     return properties_val_result
 
@@ -87,32 +101,34 @@ def _parse_fabric_mod(props, mod_data):
     return new_mod_data
 
 
-def _generate_fabric_mod(settings, repo, latest_release, mod_json, properties):
+def _generate_fabric_mod(
+    settings, repo_data, latest_release, mod_json, properties, skip_meta=False
+):
     if properties:
         properties = properties.decoded_content.decode("utf-8")
         properties = _parse_build_gradle(properties)
     if mod_json:
         mod_data = json.loads(mod_json.decoded_content.decode("utf-8"))
         mod_data = _parse_fabric_mod(properties or {}, mod_data)
-        print(properties)
     else:
         mod_data = {}
-    # pre: mod_data.get("id") or 
-    id_ = f"io.github.{repo.owner.login}.{repo.name}"
+    # pre: mod_data.get("id") or
+    id_ = f"io.github.{repo_data['owner']}.{repo_data['name']}"
     if settings.get("id"):
         id_ = settings["id"]
-    name = mod_data.get("name") or repo.name
-    desc = mod_data.get("description") or repo.description
-    authors = mod_data.get("authors") or [c.login for c in repo.get_contributors()]
-    print(mod_data, latest_release if isinstance(latest_release, str) else latest_release.tag_name)
-    version = mod_data.get("version") or (latest_release if isinstance(latest_release, str) else latest_release.tag_name).removeprefix("v")
+    name = mod_data.get("name") or repo_data["name"]
+    desc = mod_data.get("description") or repo_data["desc"]
+    authors = mod_data.get("authors") or repo_data["contributors"]
+    # pre: mod_data.get("version") or 
+    version = (
+        latest_release if isinstance(latest_release, str) else latest_release.tag_name
+    ).removeprefix("v")
     depends = {
         key: value.removeprefix(">=")
         for key, value in _parse_fabric_mod(
             properties, mod_data.get("depends") or {}
         ).items()
     }
-    print(depends)
     game_version = "0.0.0"
     if "cosmic_reach" in depends:
         game_version = depends["cosmic_reach"]
@@ -130,6 +146,23 @@ def _generate_fabric_mod(settings, repo, latest_release, mod_json, properties):
         downloads = sorted(downloads, key=lambda x: x.created_at, reverse=True)
     else:
         downloads = []
+    if skip_meta:
+        return ModMetaless(
+            version=version,
+            game_version=game_version,
+            url=downloads[0].browser_download_url if downloads else None,
+            deps=deps,
+            ext={
+                "fabricloader": fabricloader,
+                "loader": "fabric",
+                "alt_downloads": (
+                    [x.browser_download_url for x in downloads[1:]]
+                    if downloads
+                    else None
+                ),
+                "changelog": repo_data["changelog"],
+            },
+        )
     return Mod(
         id=id_,
         name=name,
@@ -139,7 +172,17 @@ def _generate_fabric_mod(settings, repo, latest_release, mod_json, properties):
         game_version=game_version,
         url=downloads[0].browser_download_url if downloads else None,
         deps=deps,
-        ext={"fabricloader": fabricloader},
+        ext={
+            "fabricloader": fabricloader,
+            "loader": "fabric",
+            "altDownloads": (
+                [x.browser_download_url for x in downloads[1:]] if downloads else None
+            ),
+            "source": repo_data["source"],
+            "issues": repo_data["issues"],
+            "owner": repo_data["owner"],
+            "changelog": repo_data["changelog"],
+        },
     )
 
 
@@ -154,25 +197,93 @@ def _gh_get_mod(settings):
         latest_release = repo.get_latest_release()
     if settings.get("folder"):
         folder = settings["folder"].strip("/")
+    repo_data = {}
+    repo_data["issues"] = f"{repo.html_url}/issues"
+    repo_data["source"] = repo.html_url
+    repo_data["owner"] = repo.owner.login
+    repo_data["name"] = repo.name
+    repo_data["desc"] = repo.description
+    repo_data["contributors"] = [x.login for x in repo.get_contributors()]
+    repo_data["changelog"] = latest_release.body if latest_release else None
+
     if settings["type"] == "fabric":
         try:
             mod_json = repo.get_contents(
                 f"{folder}/src/main/resources/fabric.mod.json",
-                ref=latest_release.tag_name if latest_release else settings.get("branch"),
+                ref=(
+                    latest_release.tag_name
+                    if latest_release
+                    else settings.get("branch")
+                ),
             )
         except Exception as e:
             print(f"WARNING: FAIL on {settings['repo']}, MODFILE NOT FOUND: ", e)
             mod_json = None
         try:
             properties = repo.get_contents(
-                f"{folder}/build.gradle.kts", ref=latest_release.tag_name if latest_release else settings.get("branch")
+                f"{folder}/build.gradle.kts",
+                ref=(
+                    latest_release.tag_name
+                    if latest_release
+                    else settings.get("branch")
+                ),
             )
         except Exception as e:
             print(f"WARNING: FAIL on {settings['repo']}, PROPERTIES NOT FOUND: ", e)
             properties = None
-        return _generate_fabric_mod(
-            settings, repo, latest_release if latest_release else settings.get("branch"), mod_json, properties
+
+        older_releases = repo.get_releases()
+        older_releases = [
+            x for x in older_releases if x.tag_name != latest_release.tag_name
+        ]
+        older_releases = sorted(
+            older_releases, key=lambda x: x.created_at, reverse=True
         )
+
+        older_mods = []
+
+        for release in older_releases:
+
+            specific_repo_data = repo_data.copy()
+            specific_repo_data["changelog"] = release.body
+
+            try:
+                specific_mod_json = repo.get_contents(
+                    f"{folder}/src/main/resources/fabric.mod.json", ref=release.tag_name
+                )
+            except Exception as e:
+                print(f"WARNING: FAIL on {settings['repo']}, MODFILE NOT FOUND: ", e)
+                specific_mod_json = None
+            try:
+                specific_properties = repo.get_contents(
+                    f"{folder}/build.gradle.kts", ref=release.tag_name
+                )
+            except Exception as e:
+                print(f"WARNING: FAIL on {settings['repo']}, PROPERTIES NOT FOUND: ", e)
+                specific_properties = None
+
+            older_mods.append(
+                _generate_fabric_mod(
+                    settings,
+                    specific_repo_data,
+                    release,
+                    specific_mod_json,
+                    specific_properties,
+                    skip_meta=True,
+                )
+            )
+
+        mod = _generate_fabric_mod(
+            settings,
+            repo_data,
+            latest_release if latest_release else settings.get("branch"),
+            mod_json,
+            properties,
+        )
+
+        if older_mods:
+            mod.ext["altVersions"] = older_mods
+        return mod
 
 
 def get_mod(settings):
@@ -198,7 +309,7 @@ def main():
 
     with open("repo.hjson", "w", encoding="utf-8") as f:
         hjson.dump(out, f)
-        
+
     with open("repo.json", "w", encoding="utf-8") as f:
         json.dump(out, f, indent=4)
 
