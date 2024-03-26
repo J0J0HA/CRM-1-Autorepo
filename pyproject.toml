@@ -13,6 +13,7 @@ hjson = "^3.1.0"
 requests = "^2.31.0"
 pygithub = "^2.3.0"
 dataclasses-json = "^0.6.4"
+environs = "^11.0.0"
 
 
 [build-system]
