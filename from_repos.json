@@ -1,0 +1,12 @@
+{
+    "repos": [
+        {
+            "provider": "github",
+            "repo": "CRModders/FluxAPI",
+            "folder": "/",
+            "type": "fabric",
+            "tag": "main"
+        }
+    ],
+    "rootId": "de.jojojux.cosmic-repo"
+}
