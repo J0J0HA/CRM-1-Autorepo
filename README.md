@@ -1,6 +1,13 @@
 # CRM-1-Autorepo
 
-[![Build Repo](https://github.com/J0J0HA/crm-1-git-repo/actions/workflows/build-repo.yml/badge.svg)](https://github.com/J0J0HA/crm-1-git-repo/actions/workflows/build-repo.yml)
+[![Build Repo](https://github.com/J0J0HA/CRM-1-Autorepo/actions/workflows/build-repo.yml/badge.svg)](https://github.com/J0J0HA/CRM-1-Autorepo/actions/workflows/build-repo.yml)
+
+## Links
+
+This CRM-1 repository has a hjson and a json build.
+
+- [HJSON](https://j0j0ha.github.io/CRM-1-Autorepo/repo.hjson)
+- [JSON](https://j0j0ha.github.io/CRM-1-Autorepo/repo.json)
 
 ## Description
 
@@ -11,10 +18,10 @@ This is a CRM-1 repo updating its contents automatically from GitHub.
 For each mod in the ``settings.json``-file, the following attributes are required:
 
 - ``provider``*: The git provider (e.g. ``github``). Currently, only GitHub is supported.
-- ``repo``*: The repository name (e.g. ``J0J0HA/crm-1-git-repo``).
+- ``repo``*: The repository name (e.g. ``J0J0HA/CRM-1-Autorepo``).
 - ``type``*: The type of the mod (e.g. ``fabric``). Currently, only ``fabric`` is supported.
 - ``folder``: The folder in the repository where the mod (the ``src``-folder) is located. If not specified, the root folder is used.
-- ``id``: The mod ID (e.g. ``crm-1``). If not specified, the repository name is used (e.g. ``io.github.j0j0ha.crm-1-git-repo``).
+- ``id``: The mod ID (e.g. ``crm-1``). If not specified, the repository name is used (e.g. ``io.github.j0j0ha.CRM-1-Autorepo``).
 - ``tag``: The tag of the release to use. If not specified, the latest release is used.
 
 \* = Required
@@ -26,14 +33,14 @@ For each mod in the ``settings.json``-file, the following attributes are require
   "mods": [
     {
       "provider": "github",
-      "repo": "J0J0HA/crm-1-git-repo",
+      "repo": "J0J0HA/CRM-1-Autorepo",
       "type": "fabric",
       "folder": "/",
-      "id": "io.github.j0j0ha.crm-1-git-repo",
+      "id": "io.github.j0j0ha.CRM-1-Autorepo",
       "tag": "v1.0.0"
     }
   ],
-  "rootId": "io.github.j0j0ha.crm-1-git-repo"
+  "rootId": "io.github.j0j0ha.CRM-1-Autorepo"
 }
 ```
 
