@@ -6,6 +6,12 @@
             "folder": "/",
             "id": "dev.crmodders.flux",
             "type": "fabric"
+        },
+        {
+            "provider": "github",
+            "repo": "repletsin5/lunar-api",
+            "folder": "/",
+            "type": "fabric"
         }
     ],
     "rootId": "de.jojojux.crm-repo"
