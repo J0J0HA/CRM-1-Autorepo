@@ -15,7 +15,7 @@
         },
         {
             "provider": "github",
-            "repo": "Lelebees/better-slabs-cosmic_reach/",
+            "repo": "Lelebees/better-slabs-cosmic_reach",
             "folder": "/",
             "type": "fabric"
         }
