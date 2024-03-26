@@ -48,7 +48,7 @@ class ModMetaless:
     ext: dict
 
 
-def _parse_build_gradle(content):
+def _parse_build_gradle_kts(content):
     properties_obj = content[content.find("object Properties {") :]
     properties_obj = properties_obj[: properties_obj.find("}")]
     properties_obj = properties_obj.removeprefix("object Properties {").removesuffix(
@@ -221,7 +221,7 @@ def _gh_get_mod(settings):
             releases = sorted(releases, key=lambda x: x.created_at, reverse=True)
             latest_release = releases[0]
     if settings.get("folder"):
-        folder = settings["folder"].strip("/")
+        folder = settings["folder"].strip("/") + "/"
     repo_data = {}
     repo_data["issues"] = f"{repo.html_url}/issues"
     repo_data["source"] = repo.html_url
@@ -234,7 +234,7 @@ def _gh_get_mod(settings):
     if settings["type"] == "fabric":
         try:
             mod_json = repo.get_contents(
-                f"{folder}/src/main/resources/fabric.mod.json",
+                f"{folder}src/main/resources/fabric.mod.json",
                 ref=(
                     latest_release.tag_name
                     if latest_release
@@ -246,7 +246,7 @@ def _gh_get_mod(settings):
             mod_json = None
         try:
             properties = repo.get_contents(
-                f"{folder}/build.gradle.kts",
+                f"{folder}build.gradle.kts",
                 ref=(
                     latest_release.tag_name
                     if latest_release
@@ -255,11 +255,11 @@ def _gh_get_mod(settings):
             )
             if properties:
                 properties = properties.decoded_content.decode("utf-8")
-                properties = _parse_build_gradle(properties)
+                properties = _parse_build_gradle_kts(properties)
         except Exception as e:
             try:
                 properties = repo.get_contents(
-                    f"{folder}/gradle.properties",
+                    f"{folder}gradle.properties",
                     ref=(
                         latest_release.tag_name
                         if latest_release
@@ -273,8 +273,7 @@ def _gh_get_mod(settings):
                 print(
                     f"WARNING: FAIL on {settings['repo']}, PROPERTIES NOT FOUND: ", e
                 )
-                properties = None
-                raise e
+                properties = {}
 
         older_releases = repo.get_releases()
         older_releases = [
@@ -293,22 +292,22 @@ def _gh_get_mod(settings):
 
             try:
                 specific_mod_json = repo.get_contents(
-                    f"{folder}/src/main/resources/fabric.mod.json", ref=release.tag_name
+                    f"{folder}src/main/resources/fabric.mod.json", ref=release.tag_name
                 )
             except Exception as e:
                 print(f"WARNING: FAIL on {settings['repo']}, MODFILE NOT FOUND: ", e)
                 specific_mod_json = None
             try:
                 specific_properties = repo.get_contents(
-                    f"{folder}/build.gradle.kts", ref=release.tag_name
+                    f"{folder}build.gradle.kts", ref=release.tag_name
                 )
                 if specific_properties:
                     specific_properties = specific_properties.decoded_content.decode("utf-8")
-                    specific_properties = _parse_build_gradle(specific_properties)
+                    specific_properties = _parse_build_gradle_kts(specific_properties)
             except Exception as e:
                 try:
                     specific_properties = repo.get_contents(
-                        f"{folder}/gradle.properties", ref=release.tag_name
+                        f"{folder}gradle.properties", ref=release.tag_name
                     )
                     if specific_properties:
                         specific_properties = specific_properties.decoded_content.decode("utf-8")
@@ -317,8 +316,7 @@ def _gh_get_mod(settings):
                     print(
                         f"WARNING: FAIL on {settings['repo']}, PROPERTIES NOT FOUND: ", e
                     )
-                    specific_properties = None
-                    raise e
+                    specific_properties = {}
 
             older_mods.append(
                 _generate_fabric_mod(
