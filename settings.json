@@ -5,7 +5,7 @@
             "repo": "CRModders/FluxAPI",
             "folder": "/",
             "type": "fabric",
-            "tag": "main"
+            "id": "dev.crmodders.flux"
         }
     ],
     "rootId": "de.jojojux.cosmic-repo"

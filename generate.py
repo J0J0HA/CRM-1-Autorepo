@@ -38,21 +38,34 @@ class Mod:
     ext: dict
 
 
-def _parse_build_gradle(properties):
-    properties = properties[properties.find("object Properties {") :]
-    properties = properties[: properties.find("}")]
-    properties = properties.replace("object Properties {", "").replace("}", "")
-    properties_list = properties.split("\n")
-    properties_list = [x.strip() for x in properties_list]
-    result = {}
-    for prop in properties_list:
+def _parse_build_gradle(content):
+    properties_obj = content[content.find("object Properties {") :]
+    properties_obj = properties_obj[: properties_obj.find("}")]
+    properties_obj = properties_obj.removeprefix("object Properties {").removesuffix("}")
+    properties_obj_list = properties_obj.split("\n")
+    properties_obj_list = [x.strip() for x in properties_obj_list]
+    properties_obj_result = {}
+    for prop in properties_obj_list:
         if prop:
             prop = prop.strip()
             key, value = prop.split("=")
             key = key.removeprefix("const ").removeprefix("val ").strip()
             value = value.strip().removeprefix('"').removesuffix('"')
-            result[key.lower()] = value
-    return result
+            properties_obj_result[key] = value
+    properties_val = content[content.find("val properties = mapOf(") :]
+    properties_val = properties_val[: properties_val.find(")")]
+    properties_val = properties_val.removeprefix("val properties = mapOf(").removesuffix(")")
+    properties_val_list = properties_val.split(",")
+    properties_val_list = [x.strip() for x in properties_val_list]
+    properties_val_result = {}
+    for prop in properties_val_list:
+        if prop:
+            prop = prop.strip()
+            key, value = prop.split(" to ")
+            key = key.removeprefix('"').removesuffix('"')
+            value = value.removeprefix('Properties.')
+            properties_val_result[key] = properties_obj_result[value]
+    return properties_val_result
 
 
 def _parse_fabric_mod(props, mod_data):
@@ -63,14 +76,12 @@ def _parse_fabric_mod(props, mod_data):
             def replace(match):
                 replacement = match.group().removeprefix("${").removesuffix("}")
                 if replacement in props:
-                    replacement = props[replacement.lower()]
+                    replacement = props[replacement]
                 else:
                     replacement = match.group()
                 return replacement
 
             new_mod_data[key] = re.sub(r"\$\{.*?\}", replace, value)
-            if key == "id" and not "." in new_mod_data[key]:
-                new_mod_data[key] = props["maven_group"] + "." + new_mod_data[key]
         else:
             new_mod_data[key] = value
     return new_mod_data
@@ -83,16 +94,20 @@ def _generate_fabric_mod(settings, repo, latest_release, mod_json, properties):
     if mod_json:
         mod_data = json.loads(mod_json.decoded_content.decode("utf-8"))
         mod_data = _parse_fabric_mod(properties or {}, mod_data)
+        print(properties)
     else:
         mod_data = {}
     id_ = mod_data.get("id") or f"io.github.{repo.owner.login}.{repo.name}"
+    if settings.get("id"):
+        id_ = settings["id"]
     name = mod_data.get("name") or repo.name
     desc = mod_data.get("description") or repo.description
     authors = mod_data.get("authors") or [
         repo.owner.login,
         *[c.login for c in repo.get_contributors()],
     ]
-    version = mod_data.get("version") or latest_release.tag_name
+    print(mod_data, latest_release.tag_name)
+    version = mod_data.get("version") or latest_release.tag_name.removeprefix("v")
     depends = {
         key: value.removeprefix(">=")
         for key, value in _parse_fabric_mod(
@@ -127,7 +142,7 @@ def _generate_fabric_mod(settings, repo, latest_release, mod_json, properties):
     )
 
 
-def _gh_get_repo(settings):
+def _gh_get_mod(settings):
     repo = g.get_repo(settings["repo"])
     latest_release = repo.get_latest_release()
     if settings.get("folder"):
@@ -153,18 +168,18 @@ def _gh_get_repo(settings):
         )
 
 
-def get_repo(settings):
+def get_mod(settings):
     if settings["provider"] == "github":
-        return _gh_get_repo(settings)
+        return _gh_get_mod(settings)
     raise ValueError("Unknown provider")
 
 
 def main():
-    with open("from_repos.json", "r", encoding="utf-8") as f:
+    with open("settings.json", "r", encoding="utf-8") as f:
         settings = json.load(f)
     final_repos = []
     for repo in settings["repos"]:
-        mod = get_repo(repo)
+        mod = get_mod(repo)
         final_repos.append(mod.to_dict())
 
     out = {
