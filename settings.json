@@ -4,9 +4,9 @@
             "provider": "github",
             "repo": "CRModders/FluxAPI",
             "folder": "/",
-            "type": "fabric",
-            "id": "dev.crmodders.flux"
+            "id": "dev.crmodders.flux",
+            "type": "fabric"
         }
     ],
-    "rootId": "de.jojojux.cosmic-repo"
+    "rootId": "io.github.j0j0ha.crm-1-git-repo"
 }
