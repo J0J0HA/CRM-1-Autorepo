@@ -23,6 +23,10 @@ For each mod in the ``settings.json``-file, the following attributes are require
 - ``folder``: The folder in the repository where the mod (the ``src``-folder) is located. If not specified, the root folder is used.
 - ``id``: The mod ID (e.g. ``crm-1``). If not specified, the repository name is used (e.g. ``io.github.j0j0ha.CRM-1-Autorepo``).
 - ``tag``: The tag of the release to use. If not specified, the latest release is used.
+- ``deps``: Additional dependencies of the mod that are not detected by Autorepo. Each dependency has the following attributes:
+  - ``id``*: The ID of the dependency.
+  - ``version``*: The version of the dependency.
+  - ``source``*: The source repo of the dependency.
 
 \* = Required
 

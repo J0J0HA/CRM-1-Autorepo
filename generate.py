@@ -82,6 +82,18 @@ def _parse_build_gradle(content):
     return properties_val_result
 
 
+def _parse_gradle_properties(content):
+    properties = {}
+    for line in content.split("\n"):
+        line = line.strip()
+        if line and not line.startswith("#"):
+            key, value = line.split("=")
+            key = key.strip()
+            value = value.strip()
+            properties[key] = value
+    return properties
+
+
 def _parse_fabric_mod(props, mod_data):
     new_mod_data = {}
     for key, value in mod_data.items():
@@ -104,16 +116,13 @@ def _parse_fabric_mod(props, mod_data):
 def _generate_fabric_mod(
     settings, repo_data, latest_release, mod_json, properties, skip_meta=False
 ):
-    if properties:
-        properties = properties.decoded_content.decode("utf-8")
-        properties = _parse_build_gradle(properties)
     if mod_json:
         mod_data = json.loads(mod_json.decoded_content.decode("utf-8"))
         mod_data = _parse_fabric_mod(properties or {}, mod_data)
     else:
         mod_data = {}
     # pre: mod_data.get("id") or
-    id_ = f"io.github.{repo_data['owner']}.{repo_data['name']}"
+    id_ = properties.get("maven_group") or f"io.github.{repo_data['owner']}.{repo_data['name']}"
     if settings.get("id"):
         id_ = settings["id"]
     name = mod_data.get("name") or repo_data["name"]
@@ -140,10 +149,13 @@ def _generate_fabric_mod(
     deps = []
     for thing, version in depends.items():
         deps.append(Dependency(id=thing, version=version, source="unknown"))
+    if settings.get("deps"):
+        for dep in settings["deps"]:
+            deps.append(Dependency(id=dep["id"], version=dep["version"], source=dep["source"]))
     if not isinstance(latest_release, str):
         downloads = latest_release.get_assets()
         downloads = [x for x in downloads if x.name.endswith(".jar")]
-        downloads = sorted(downloads, key=lambda x: x.created_at, reverse=True)
+        downloads = sorted(downloads, key=lambda x: len(x.name))
     else:
         downloads = []
     if skip_meta:
@@ -194,7 +206,12 @@ def _gh_get_mod(settings):
         else:
             latest_release = repo.get_release(settings["tag"])
     else:
-        latest_release = repo.get_latest_release()
+        try:
+            latest_release = repo.get_latest_release()
+        except:
+            releases = repo.get_releases()
+            releases = sorted(releases, key=lambda x: x.created_at, reverse=True)
+            latest_release = releases[0]
     if settings.get("folder"):
         folder = settings["folder"].strip("/")
     repo_data = {}
@@ -228,9 +245,28 @@ def _gh_get_mod(settings):
                     else settings.get("branch")
                 ),
             )
+            if properties:
+                properties = properties.decoded_content.decode("utf-8")
+                properties = _parse_build_gradle(properties)
         except Exception as e:
-            print(f"WARNING: FAIL on {settings['repo']}, PROPERTIES NOT FOUND: ", e)
-            properties = None
+            try:
+                properties = repo.get_contents(
+                    f"{folder}/gradle.properties",
+                    ref=(
+                        latest_release.tag_name
+                        if latest_release
+                        else settings.get("branch")
+                    ),
+                )
+                if properties:
+                    properties = properties.decoded_content.decode("utf-8")
+                    properties = _parse_gradle_properties(properties)
+            except Exception as e:
+                print(
+                    f"WARNING: FAIL on {settings['repo']}, PROPERTIES NOT FOUND: ", e
+                )
+                properties = None
+                raise e
 
         older_releases = repo.get_releases()
         older_releases = [
@@ -258,9 +294,23 @@ def _gh_get_mod(settings):
                 specific_properties = repo.get_contents(
                     f"{folder}/build.gradle.kts", ref=release.tag_name
                 )
+                if specific_properties:
+                    specific_properties = specific_properties.decoded_content.decode("utf-8")
+                    specific_properties = _parse_build_gradle(specific_properties)
             except Exception as e:
-                print(f"WARNING: FAIL on {settings['repo']}, PROPERTIES NOT FOUND: ", e)
-                specific_properties = None
+                try:
+                    specific_properties = repo.get_contents(
+                        f"{folder}/gradle.properties", ref=release.tag_name
+                    )
+                    if specific_properties:
+                        specific_properties = specific_properties.decoded_content.decode("utf-8")
+                        specific_properties = _parse_gradle_properties(specific_properties)
+                except Exception as e:
+                    print(
+                        f"WARNING: FAIL on {settings['repo']}, PROPERTIES NOT FOUND: ", e
+                    )
+                    specific_properties = None
+                    raise e
 
             older_mods.append(
                 _generate_fabric_mod(
