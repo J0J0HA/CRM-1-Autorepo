@@ -6,8 +6,8 @@
 
 This CRM-1 repository has a hjson and a json build.
 
-- [HJSON](https://j0j0ha.github.io/CRM-1-Autorepo/repo.hjson)
-- [JSON](https://j0j0ha.github.io/CRM-1-Autorepo/repo.json)
+- [HJSON](https://crm-repo.jojojux.de/repo.hjson)
+- [JSON](https://crm-repo.jojojux.de/repo.json)
 
 ## Description
 
@@ -40,7 +40,7 @@ For each mod in the ``settings.json``-file, the following attributes are require
       "tag": "v1.0.0"
     }
   ],
-  "rootId": "io.github.j0j0ha.CRM-1-Autorepo"
+  "rootId": "de.jojojux.crm-repo"
 }
 ```
 
