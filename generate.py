@@ -147,6 +147,13 @@ def _generate_fabric_mod(
         fabricloader = depends["fabricloader"]
         del depends["fabricloader"]
     deps = []
+    
+    icon_url = mod_data.get("icon") or None
+    print(icon_url)
+    if icon_url and (not icon_url.startswith("http://") and not icon_url.startswith("https://")):
+        icon_url = icon_url.strip("/")
+        icon_url = f"https://raw.githubusercontent.com/{settings['repo']}/{latest_release.tag_name}/{settings['folder']}/serc/main/resources/{icon_url}"
+    
     for thing, version in depends.items():
         deps.append(Dependency(id=thing, version=version, source="unknown"))
     if settings.get("deps"):
@@ -185,6 +192,7 @@ def _generate_fabric_mod(
         url=downloads[0].browser_download_url if downloads else None,
         deps=deps,
         ext={
+            "icon": icon_url,
             "fabricloader": fabricloader,
             "loader": "fabric",
             "altDownloads": (
