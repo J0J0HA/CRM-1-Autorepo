@@ -6,11 +6,11 @@ from dataclasses_json import dataclass_json
 import json
 import hjson
 from github import Github, Auth
+import dotenv
 
+dotenv.load_dotenv()
 
-auth = Auth.Token(
-    os.environ["GITHUB_TOKEN"]
-)
+auth = Auth.Token(os.environ["GITHUB_TOKEN"])
 g = Github(auth=auth)
 
 
