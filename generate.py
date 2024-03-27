@@ -122,13 +122,16 @@ def _generate_fabric_mod(
     else:
         mod_data = {}
     # pre: mod_data.get("id") or
-    id_ = properties.get("maven_group") or f"io.github.{repo_data['owner']}.{repo_data['name']}"
+    id_ = (
+        properties.get("maven_group")
+        or f"io.github.{repo_data['owner']}.{repo_data['name']}"
+    )
     if settings.get("id"):
         id_ = settings["id"]
     name = mod_data.get("name") or repo_data["name"]
     desc = mod_data.get("description") or repo_data["desc"]
     authors = mod_data.get("authors") or repo_data["contributors"]
-    # pre: mod_data.get("version") or 
+    # pre: mod_data.get("version") or
     version = (
         latest_release if isinstance(latest_release, str) else latest_release.tag_name
     ).removeprefix("v")
@@ -147,18 +150,22 @@ def _generate_fabric_mod(
         fabricloader = depends["fabricloader"]
         del depends["fabricloader"]
     deps = []
-    
+
     icon_url = mod_data.get("icon") or None
     print(icon_url)
-    if icon_url and (not icon_url.startswith("http://") and not icon_url.startswith("https://")):
+    if icon_url and (
+        not icon_url.startswith("http://") and not icon_url.startswith("https://")
+    ):
         icon_url = icon_url.strip("/")
         icon_url = f"https://raw.githubusercontent.com/{settings['repo']}/{latest_release.tag_name}/{settings['folder']}/serc/main/resources/{icon_url}"
-    
+
     for thing, version in depends.items():
         deps.append(Dependency(id=thing, version=version, source="unknown"))
     if settings.get("deps"):
         for dep in settings["deps"]:
-            deps.append(Dependency(id=dep["id"], version=dep["version"], source=dep["source"]))
+            deps.append(
+                Dependency(id=dep["id"], version=dep["version"], source=dep["source"])
+            )
     if not isinstance(latest_release, str):
         downloads = latest_release.get_assets()
         downloads = [x for x in downloads if x.name.endswith(".jar")]
@@ -270,9 +277,7 @@ def _gh_get_mod(settings):
                     properties = properties.decoded_content.decode("utf-8")
                     properties = _parse_gradle_properties(properties)
             except Exception as e:
-                print(
-                    f"WARNING: FAIL on {settings['repo']}, PROPERTIES NOT FOUND: ", e
-                )
+                print(f"WARNING: FAIL on {settings['repo']}, PROPERTIES NOT FOUND: ", e)
                 properties = {}
 
         older_releases = repo.get_releases()
@@ -302,7 +307,9 @@ def _gh_get_mod(settings):
                     f"{folder}build.gradle.kts", ref=release.tag_name
                 )
                 if specific_properties:
-                    specific_properties = specific_properties.decoded_content.decode("utf-8")
+                    specific_properties = specific_properties.decoded_content.decode(
+                        "utf-8"
+                    )
                     specific_properties = _parse_build_gradle_kts(specific_properties)
             except Exception as e:
                 try:
@@ -310,11 +317,16 @@ def _gh_get_mod(settings):
                         f"{folder}gradle.properties", ref=release.tag_name
                     )
                     if specific_properties:
-                        specific_properties = specific_properties.decoded_content.decode("utf-8")
-                        specific_properties = _parse_gradle_properties(specific_properties)
+                        specific_properties = (
+                            specific_properties.decoded_content.decode("utf-8")
+                        )
+                        specific_properties = _parse_gradle_properties(
+                            specific_properties
+                        )
                 except Exception as e:
                     print(
-                        f"WARNING: FAIL on {settings['repo']}, PROPERTIES NOT FOUND: ", e
+                        f"WARNING: FAIL on {settings['repo']}, PROPERTIES NOT FOUND: ",
+                        e,
                     )
                     specific_properties = {}
 

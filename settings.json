@@ -14,5 +14,9 @@
             "type": "fabric"
         }
     ],
-    "rootId": "de.jojojux.crm-repo"
+    "rootId": "de.jojojux.crm-repo",
+    "notes": {
+        "disclaimer": "The content of this file is generated automatically from data provided by third-party sources. It is not guaranteed to be accurate or up-to-date. Please report any instances of unappriopriate content or malicious files, the causing repositories will be removed from the list.",
+        "icons-invalid": "Currently, relative paths are not supported for icons. This results in the ext.icon field of mods being mostly useless. This will be fixed in a future update."
+    }
 }
