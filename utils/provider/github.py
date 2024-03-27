@@ -14,7 +14,7 @@ def get_repo(repo_name: str) -> datacls.Repo:
     repo = g.get_repo(repo_name)
     return datacls.Repo(
         name=repo.full_name,
-        git_url=repo.html_url + ".git",  # .git_url has git:// scheme we don't want
+        git_url=repo.clone_url,
         html_url=repo.html_url,
         issue_url=repo.issues_url,
         owner=repo.owner.login,
