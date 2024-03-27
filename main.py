@@ -1,3 +1,4 @@
+import time
 from utils import (
     datacls,
     ClonedRepo,
@@ -69,6 +70,7 @@ def main():
     file_content = {
         **{f"_note_{name}": value for name, value in setts["notes"].items()},
         "specVersion": 1,
+        "lastUpdated": round(time.now() * 1000),
         "rootId": setts["rootId"],
         "mods": [mod.to_dict() for mod in mods],
     }
