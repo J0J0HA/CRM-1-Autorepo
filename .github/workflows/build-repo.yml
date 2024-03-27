@@ -34,7 +34,7 @@ jobs:
     - name: Generate repo
       run: |
         echo "GITHUB_TOKEN = ${{ github.token }}" >> ".env"
-        poetry run python generate.py
+        poetry run python main.py
     - name: Upload GitHub Pages artifact
       uses: actions/upload-pages-artifact@v3.0.1
       with:
