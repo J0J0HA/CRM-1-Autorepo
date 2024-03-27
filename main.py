@@ -15,11 +15,12 @@ def get_mod(settings: datacls.ModSettings) -> datacls.Mod:
     versions = {}
 
     repo = provider.get_repo(settings.repo)
+    print(f"Cloning {settings.repo}...")
 
     with ClonedRepo(repo.git_url) as clone:
         for rel in provider.get_releases(repo):
             version = rel.tag.removeprefix("v")
-            print(f"Loading {settings.repo} {version}...")
+            print(f"Generating {settings.repo} {version}...")
             clone.repo.git.checkout(rel.tag)
             properties = {}
             if clone["gradle.properties"].exists():
@@ -54,6 +55,10 @@ def get_mod(settings: datacls.ModSettings) -> datacls.Mod:
                 continue
             versions[version] = mod
 
+    if not versions:
+        print(f"Skipping {settings.repo} because it doesn't have any releases/versions.")
+        return None
+
     biggest_version = max(versions.keys(), key=lambda v: len(v))
     other_versions = [v for v in versions if v != biggest_version]
     mod = versions[biggest_version]
@@ -65,7 +70,13 @@ def main():
     with open("settings.json", "r", encoding="utf-8") as f:
         setts = json.load(f)
 
-    mods = [get_mod(datacls.ModSettings.from_dict(mod)) for mod in setts["repos"]]
+    mods = [
+        omod
+        for omod in (
+            get_mod(datacls.ModSettings.from_dict(mod)) for mod in setts["repos"]
+        )
+        if omod
+    ]
 
     file_content = {
         **{f"_note_{name}": value for name, value in setts["notes"].items()},
