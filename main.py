@@ -141,12 +141,39 @@ def generate_repo(setts):
 def generate_repo_mapping(repos):
     logger.info("Generating repo mapping...")
 
+    repo_results = {}
     mods = {}
-    for repo_id, repo_address in repos.items():
-        resp = requests.get(repo_address, timeout=10)
-        res = hjson.loads(resp.text)
-        for mod in res["mods"]:
-            mods[mod["id"]] = repo_id
+    for repo_address in repos:
+        logger.info(f"[{repo_address}] Loading metadata...")
+        try:
+            resp = requests.get(repo_address, timeout=10)
+            res = hjson.loads(resp.text)
+        except Exception as e:
+            logger.error(f"[{repo_address}] Failed to load metadata: {e}")
+            continue
+        if "rootId" not in res:
+            logger.warning(f"[{repo_address}] Skipping because it doesn't have a rootId.")
+            continue
+        repo_id = res["rootId"]
+        if not repo_id:
+            logger.warning(f"[{repo_address}] Skipping because rootId is empty.")
+            continue
+        if "mods" not in res:
+            logger.warning(f"[{repo_id}] Skipping because it doesn't have mods.")
+            continue
+        repo_results[repo_id] = res["mods"]
+        
+    repo_results = {k: v for k, v in sorted(repo_results.items(), key=lambda item: len(item[1]), reverse=True)}
+    
+    for repo_id, repo_mods in repo_results.items():
+        logger.info(f"[{repo_id}] Processing mods...")
+        for mod in repo_mods:
+            if "id" not in mod:
+                logger.warning(f"[{repo_id}] Skipping MOD because mod doesn't have an id.")
+                continue
+            if mod["id"] not in mods:
+                mods[mod["id"]] = []
+            mods[mod["id"]].append(repo_id)
 
     logger.info("Generating output content...")
 

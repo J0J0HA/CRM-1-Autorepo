@@ -9,6 +9,7 @@
         {
             "provider": "github",
             "repo": "repletsin5/lunar-api",
+            "id": "com.github.repletsin5.lunar-api",
             "type": "fabric"
         },
         {
@@ -34,8 +35,8 @@
         "quilt": "Quilt mods may not be listed correcly, they were not tested yet.",
         "codeberg": "Codeberg was not tested yet, it may not work correctly."
     },
-    "repos": {
-        "dev.crmodders.repo": "https://repo.crmodders.dev/repository.hjson",
-        "de.jojojux.crm-repo": "https://crm-repo.jojojux.de/repo.hjson"
-    }
+    "repos": [
+        "https://repo.crmodders.dev/repository.hjson",
+        "https://crm-repo.jojojux.de/repo.hjson"
+    ]
 }
