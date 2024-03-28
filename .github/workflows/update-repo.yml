@@ -41,3 +41,9 @@ jobs:
       uses: actions/deploy-pages@v4.0.5
       with:
         token: ${{ github.token }}
+    - name: Upload logs
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: main.log
+        path: main.log
+        retention-days: 90
