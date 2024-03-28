@@ -1,20 +1,14 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Build Repo
+name: Test config
 
 on:
-  push:
-    branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
-  schedule:
-    - cron: '0 * * * *'
 
 permissions:
   contents: read
-  id-token: write
-  pages: write
 
 jobs:
   build:
@@ -35,11 +29,3 @@ jobs:
       run: |
         echo "GITHUB_TOKEN = ${{ github.token }}" >> ".env"
         poetry run python main.py
-    - name: Upload GitHub Pages artifact
-      uses: actions/upload-pages-artifact@v3.0.1
-      with:
-        path: .
-    - name: Deploy GitHub Pages site
-      uses: actions/deploy-pages@v4.0.5
-      with:
-        token: ${{ github.token }}
