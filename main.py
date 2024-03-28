@@ -6,6 +6,7 @@ from utils import (
     parser as parsers,
     replace_vars,
 )
+import requests
 from loguru import logger
 import json
 import sys
@@ -15,13 +16,13 @@ import hjson
 logger.remove()
 logger.add(
     sys.stdout,
-    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> <blue>|</blue> <lvl>{level:<7}</lvl> <blue>|</blue> <lvl>{message}</lvl>",
+    format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> <blue>|</blue> <lvl>{level:<7}</lvl> <blue>|</blue> <lvl>{message}</lvl>",
     level="INFO",
     colorize=True,
 )
 logger.add(
     "main.log",
-    format="{time:YYYY-MM-DD HH:mm:ss} | {level:<7} | {message}",
+    format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level:<7} | {message}",
     level="INFO",
     colorize=False,
 )
@@ -33,8 +34,6 @@ def get_mod(settings: datacls.ModSettings) -> datacls.Mod:
 
     logger.info(f"[{settings.repo}] Loading Metadata...")
     repo = provider.get_repo(settings.repo)
-    logger.info(f"[{settings.repo}] Cloning repository...")
-
     releases = provider.get_releases(repo)
     if not releases:
         logger.warning(
@@ -42,6 +41,7 @@ def get_mod(settings: datacls.ModSettings) -> datacls.Mod:
         )
         return None
 
+    logger.info(f"[{settings.repo}] Cloning repository...")
     with ClonedRepo(repo.git_url) as clone:
         for rel in releases:
             version = rel.tag.removeprefix("v")
@@ -92,26 +92,26 @@ def get_mod(settings: datacls.ModSettings) -> datacls.Mod:
         )
         return None
 
+    logger.info(f"[{settings.repo}] Finalizing...")
     biggest_version = max(versions.keys(), key=lambda v: len(v))
     other_versions = [v for v in versions if v != biggest_version]
     mod = versions[biggest_version]
     mod.ext.alt_versions = [versions[v] for v in other_versions]
+    logger.success(f"[{settings.repo}] Mod loaded.")
     return mod
 
 
-@logger.catch
-def main():
-    with open("settings.json", "r", encoding="utf-8") as f:
-        setts = json.load(f)
-
+def generate_repo(setts):
+    logger.info("Loading Mods...")
     mods = [
         omod
         for omod in (
-            get_mod(datacls.ModSettings.from_dict(mod)) for mod in setts["repos"]
+            get_mod(datacls.ModSettings.from_dict(mod)) for mod in setts["mods"]
         )
         if omod
     ]
 
+    logger.info("Generating output content...")
     file_content = {
         **{f"_note_{name}": value for name, value in setts["notes"].items()},
         "specVersion": 1,
@@ -120,6 +120,7 @@ def main():
         "mods": [mod.to_dict() for mod in mods],
     }
 
+    logger.info("Writing output files...")
     with open("repo.json", "w", encoding="utf-8") as f:
         json.dump(
             file_content,
@@ -133,6 +134,56 @@ def main():
             f,
             indent=4,
         )
+
+    logger.success("Generated repo.")
+
+
+def generate_repo_mapping(repos):
+    logger.info("Generating repo mapping...")
+
+    mods = {}
+    for repo_id, repo_address in repos.items():
+        resp = requests.get(repo_address, timeout=10)
+        res = hjson.loads(resp.text)
+        for mod in res["mods"]:
+            mods[mod["id"]] = repo_id
+
+    logger.info("Generating output content...")
+
+    output_content = {
+        "mods": mods,
+        "repos": repos,
+        "lastUpdated": round(time.time() * 1000),
+    }
+
+    logger.info("Writing output files...")
+
+    with open("repo_mapping.json", "w", encoding="utf-8") as f:
+        json.dump(
+            output_content,
+            f,
+            indent=4,
+        )
+
+    with open("repo_mapping.hjson", "w", encoding="utf-8") as f:
+        hjson.dump(
+            output_content,
+            f,
+            indent=4,
+        )
+
+    logger.success("Generated repo mapping.")
+
+
+@logger.catch
+def main():
+    start = time.time()
+    logger.info("Reading config...")
+    with open("settings.json", "r", encoding="utf-8") as f:
+        setts = json.load(f)
+    generate_repo(setts)
+    generate_repo_mapping(setts["repos"])
+    logger.success(f"Finished. Took {time.time() - start:.2f}s.")
 
 
 if __name__ == "__main__":

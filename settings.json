@@ -1,5 +1,5 @@
 {
-    "repos": [
+    "mods": [
         {
             "provider": "github",
             "repo": "CRModders/FluxAPI",
@@ -20,6 +20,11 @@
             "repo": "NikRasOff/CosmicReach-Seamless-Portals",
             "id": "com.nikrasoff.seamlessportals",
             "type": "fabric"
+        },
+        {
+            "provider": "github",
+            "repo": "ForwarD-NerN/BlockEntityPrototype",
+            "type": "fabric"
         }
     ],
     "rootId": "de.jojojux.crm-repo",
@@ -28,5 +33,9 @@
         "icons-invalid": "Currently, relative paths are not supported for icons. This results in the ext.icon field of mods being mostly useless. This will be fixed in a future update.",
         "quilt": "Quilt mods may not be listed correcly, they were not tested yet.",
         "codeberg": "Codeberg was not tested yet, it may not work correctly."
+    },
+    "repos": {
+        "dev.crmodders.repo": "https://repo.crmodders.dev/repository.hjson",
+        "de.jojojux.crm-repo": "https://crm-repo.jojojux.de/repo.hjson"
     }
 }
