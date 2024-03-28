@@ -17,6 +17,7 @@ def get_repo(repo_name: str) -> datacls.Repo:
         issue_url=repo_data["html_url"] + "/issues",
         owner=repo_data["owner"]["login"],
         authors=contributors,
+        master_branch=repo_data["default_branch"],
     )
 
 

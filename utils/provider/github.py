@@ -19,6 +19,7 @@ def get_repo(repo_name: str) -> datacls.Repo:
         issue_url=repo.html_url + "/issues",
         owner=repo.owner.login,
         authors=[c.login for c in repo.get_contributors()],
+        master_branch=repo.default_branch,
     )
 
 

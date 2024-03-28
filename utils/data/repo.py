@@ -11,3 +11,4 @@ class Repo:
     issue_url: str
     owner: str
     authors: list[str]
+    master_branch: str
