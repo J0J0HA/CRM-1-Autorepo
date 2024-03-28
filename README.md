@@ -1,6 +1,6 @@
 # CRM-1-Autorepo
 
-[![Build Repo](https://github.com/J0J0HA/CRM-1-Autorepo/actions/workflows/build-repo.yml/badge.svg)](https://github.com/J0J0HA/CRM-1-Autorepo/actions/workflows/build-repo.yml)
+[![Upadate Repo](https://github.com/J0J0HA/CRM-1-Autorepo/actions/workflows/update-repo.yml/badge.svg)](https://github.com/J0J0HA/CRM-1-Autorepo/actions/workflows/update-repo.yml)
 
 ## Links
 
