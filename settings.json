@@ -3,19 +3,23 @@
         {
             "provider": "github",
             "repo": "CRModders/FluxAPI",
-            "folder": "/",
             "id": "dev.crmodders.flux",
             "type": "fabric"
         },
         {
             "provider": "github",
             "repo": "repletsin5/lunar-api",
-            "folder": "/",
             "type": "fabric"
         },
         {
             "provider": "codeberg",
             "repo": "CRModders/cosmic-quilt-example-kotlin"
+        },
+        {
+            "provider": "github",
+            "repo": "NikRasOff/CosmicReach-Seamless-Portals",
+            "id": "com.nikrasoff.seamlessportals",
+            "type": "fabric"
         }
     ],
     "rootId": "de.jojojux.crm-repo",
