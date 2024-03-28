@@ -41,6 +41,18 @@ jobs:
       uses: actions/deploy-pages@v4.0.5
       with:
         token: ${{ github.token }}
+    - name: Upload repo
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: repo
+        path: repo.*
+        retention-days: 10
+    - name: Upload repo_mapping
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: repo_mapping
+        path: repo_mapping.*
+        retention-days: 10
     - name: Upload logs
       uses: actions/upload-artifact@v4.3.1
       with:
