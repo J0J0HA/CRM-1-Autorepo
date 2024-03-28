@@ -93,7 +93,7 @@ def get_mod(settings: datacls.ModSettings) -> datacls.Mod:
         return None
 
     logger.info(f"[{settings.repo}] Finalizing...")
-    biggest_version = max(versions.keys(), key=lambda v: len(v))
+    biggest_version = max(versions.keys(), key=lambda v: versions[v].ext.published_at)
     other_versions = [v for v in versions if v != biggest_version]
     mod = versions[biggest_version]
     mod.ext.alt_versions = [versions[v] for v in other_versions]

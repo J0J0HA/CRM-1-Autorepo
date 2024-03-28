@@ -1,4 +1,5 @@
 from .dependency import Dependency
+from .modext import ModExt
 
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
@@ -15,4 +16,4 @@ class Mod:
     game_version: str
     url: str
     deps: list[Dependency]
-    ext: dict
+    ext: ModExt

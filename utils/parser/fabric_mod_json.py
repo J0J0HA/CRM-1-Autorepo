@@ -32,5 +32,6 @@ def parse_fabric_mod_json(
             changelog=release.link,
             alt_download=files,
             alt_versions=[],
+            published_at=release.published_at
         ),
     )

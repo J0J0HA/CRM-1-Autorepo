@@ -14,5 +14,6 @@ class ModExt:
     issues: str = None
     owner: str = None
     changelog: str = None
+    published_at: str = None
     alt_download: str = None
     alt_versions: list["Mod"] = None
