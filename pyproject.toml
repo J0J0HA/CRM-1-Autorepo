@@ -15,6 +15,7 @@ pygithub = "^2.3.0"
 dataclasses-json = "^0.6.4"
 environs = "^11.0.0"
 gitpython = "^3.1.42"
+loguru = "^0.7.2"
 
 
 [build-system]
