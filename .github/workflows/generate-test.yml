@@ -17,14 +17,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v3
+    - name: Install poetry
+      run: pipx install poetry
+    - uses: actions/setup-python@v3
       with:
         python-version: "3.11"
+        cache: "poetry"
     - name: Install dependencies
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-        poetry install
+      run: poetry install
     - name: Generate repo
       run: |
         echo "GITHUB_TOKEN = ${{ github.token }}" >> ".env"
