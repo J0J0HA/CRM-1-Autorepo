@@ -18,7 +18,7 @@ def parse_fabric_mod_json(
         game_version=dependencies.get("cosmic_reach"),
         url=files[-1][1] if files else release.link,
         deps=[
-            Dependency(name, version, "unknown")
+            Dependency(name, version, None)
             for name, version in dependencies.items()
             if name != "fabricloader" and name != "cosmic_reach"
         ],
