@@ -29,3 +29,15 @@ jobs:
       run: |
         echo "GITHUB_TOKEN = ${{ github.token }}" >> ".env"
         poetry run python main.py
+    - name: Upload repo
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: result
+        path: repo.*
+        retention-days: 90
+    - name: Upload logs
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: main.log
+        path: main.log
+        retention-days: 90
