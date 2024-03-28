@@ -6,21 +6,46 @@ from utils import (
     parser as parsers,
     replace_vars,
 )
+from loguru import logger
 import json
+import sys
 import hjson
+
+
+logger.remove()
+logger.add(
+    sys.stdout,
+    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> <blue>|</blue> <lvl>{level:<7}</lvl> <blue>|</blue> <lvl>{message}</lvl>",
+    level="INFO",
+    colorize=True,
+)
+logger.add(
+    "main.log",
+    format="{time:YYYY-MM-DD HH:mm:ss} | {level:<7} | {message}",
+    level="INFO",
+    colorize=False,
+)
 
 
 def get_mod(settings: datacls.ModSettings) -> datacls.Mod:
     provider = providers.map[settings.provider]
     versions = {}
 
+    logger.info(f"[{settings.repo}] Loading Metadata...")
     repo = provider.get_repo(settings.repo)
-    print(f"Cloning {settings.repo}...")
+    logger.info(f"[{settings.repo}] Cloning repository...")
+
+    releases = provider.get_releases(repo)
+    if not releases:
+        logger.warning(
+            f"[{settings.repo}] Skipping because it doesn't have any releases."
+        )
+        return None
 
     with ClonedRepo(repo.git_url) as clone:
-        for rel in provider.get_releases(repo):
+        for rel in releases:
             version = rel.tag.removeprefix("v")
-            print(f"Generating {settings.repo} {version}...")
+            logger.info(f"[{settings.repo}] [v{version}] Loading Metadata...")
             clone.repo.git.checkout(rel.tag)
             properties = {}
             if clone["gradle.properties"].exists():
@@ -31,32 +56,40 @@ def get_mod(settings: datacls.ModSettings) -> datacls.Mod:
                     properties.update(parsers.parse_build_gradle_kts(f.read()))
 
             if not clone["src/main/resources"].exists():
-                print(
-                    f"Skipping {settings.repo} {version} because it doesn't have resources."
+                logger.warning(
+                    f"[{settings.repo}] [v{version}] Skipping because it doesn't have resources."
                 )
                 continue
             mod = None
-            if clone["src/main/resources/fabric.mod.json"].exists():
+            if clone["cosmicreach-mod.json"].exists():
+                with clone.open("cosmicreach-mod.json") as f:
+                    json_content = f.read()
+                    json_vars = replace_vars(json_content, properties)
+                    json_data = json.loads(json_vars)
+                mod = parsers.parse_fabric_mod_json(settings, repo, json_data, rel)
+            elif clone["src/main/resources/fabric.mod.json"].exists():
                 with clone.open("src/main/resources/fabric.mod.json") as f:
                     json_content = f.read()
                     json_vars = replace_vars(json_content, properties)
                     json_data = json.loads(json_vars)
                 mod = parsers.parse_fabric_mod_json(settings, repo, json_data, rel)
             else:
-                print(
-                    f"Skipping {settings.repo} {version} because it doesn't have a fabric.mod.json."
+                logger.warning(
+                    f"[{settings.repo}] [v{version}] Skipping because it doesn't have a parsable config file."
                 )
                 continue
 
             if version in versions:
-                print(
-                    f"Skipping {settings.repo} {version} because it's already loaded."
+                logger.warning(
+                    f"[{settings.repo}] [v{version}] Skipping because it's already added."
                 )
                 continue
             versions[version] = mod
 
     if not versions:
-        print(f"Skipping {settings.repo} because it doesn't have any releases/versions.")
+        logger.warning(
+            f"[{settings.repo}] Skipping because it doesn't have any versions."
+        )
         return None
 
     biggest_version = max(versions.keys(), key=lambda v: len(v))
@@ -66,6 +99,7 @@ def get_mod(settings: datacls.ModSettings) -> datacls.Mod:
     return mod
 
 
+@logger.catch
 def main():
     with open("settings.json", "r", encoding="utf-8") as f:
         setts = json.load(f)
