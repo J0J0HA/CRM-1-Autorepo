@@ -202,7 +202,6 @@ def generate_repo_mapping(repos):
     logger.success("Generated repo mapping.")
 
 
-@logger.catch
 def main():
     start = time.time()
     logger.info("Reading config...")
