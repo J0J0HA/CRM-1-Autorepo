@@ -142,6 +142,7 @@ def generate_repo_mapping(repos):
     logger.info("Generating repo mapping...")
 
     repo_results = {}
+    repo_map = {}
     mods = {}
     for repo_address in repos:
         logger.info(f"[{repo_address}] Loading metadata...")
@@ -161,6 +162,7 @@ def generate_repo_mapping(repos):
         if "mods" not in res:
             logger.warning(f"[{repo_id}] Skipping because it doesn't have mods.")
             continue
+        repo_map[repo_id] = repo_address
         repo_results[repo_id] = res["mods"]
         
     repo_results = {k: v for k, v in sorted(repo_results.items(), key=lambda item: len(item[1]), reverse=True)}
@@ -179,7 +181,7 @@ def generate_repo_mapping(repos):
 
     output_content = {
         "mods": mods,
-        "repos": repos,
+        "repos": repo_map,
         "lastUpdated": round(time.time() * 1000),
     }
 
