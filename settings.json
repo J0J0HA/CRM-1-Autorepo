@@ -3,14 +3,12 @@
         {
             "provider": "github",
             "repo": "CRModders/FluxAPI",
-            "id": "dev.crmodders.flux",
-            "type": "fabric"
+            "id": "dev.crmodders.flux"
         },
         {
             "provider": "github",
             "repo": "repletsin5/lunar-api",
-            "id": "com.github.repletsin5.lunar-api",
-            "type": "fabric"
+            "id": "com.github.repletsin5.lunar-api"
         },
         {
             "provider": "codeberg",
@@ -19,13 +17,22 @@
         {
             "provider": "github",
             "repo": "NikRasOff/CosmicReach-Seamless-Portals",
-            "id": "com.nikrasoff.seamlessportals",
-            "type": "fabric"
+            "id": "com.nikrasoff.seamlessportals"
         },
         {
             "provider": "github",
-            "repo": "ForwarD-NerN/BlockEntityPrototype",
-            "type": "fabric"
+            "repo": "ForwarD-NerN/BlockEntityPrototype"
+        },
+        {
+            "provider": "codeberg",
+            "repo": "CRModders/distant-cosmos",
+            "id": "com.coolgi.distantcosmos",
+            "folder": "quilt"
+        },
+        {
+            "provider": "codeberg",
+            "repo": "CRModders/voxelized-cosmos",
+            "id": "me.cortex.voxy"
         }
     ],
     "rootId": "de.jojojux.crm-repo",

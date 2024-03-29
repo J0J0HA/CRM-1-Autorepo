@@ -61,13 +61,13 @@ def get_mod(settings: datacls.ModSettings) -> datacls.Mod:
                 )
                 continue
             mod = None
-            if clone["cosmicreach-mod.json"].exists():
-                with clone.open("cosmicreach-mod.json") as f:
-                    json_content = f.read()
-                    json_vars = replace_vars(json_content, properties)
-                    json_data = json.loads(json_vars)
-                mod = parsers.parse_fabric_mod_json(settings, repo, json_data, rel)
-            elif clone["src/main/resources/fabric.mod.json"].exists():
+            # if clone["cosmicreach-mod.json"].exists():
+            #     with clone.open("cosmicreach-mod.json") as f:
+            #         json_content = f.read()
+            #         json_vars = replace_vars(json_content, properties)
+            #         json_data = json.loads(json_vars)
+            #     mod = parsers.parse_fabric_mod_json(settings, repo, json_data, rel)
+            if clone["src/main/resources/fabric.mod.json"].exists():
                 with clone.open("src/main/resources/fabric.mod.json") as f:
                     json_content = f.read()
                     json_vars = replace_vars(json_content, properties)
