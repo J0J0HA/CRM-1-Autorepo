@@ -1,7 +1,7 @@
 from typing import Optional
 from .dependency import Dependency
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
 
 
@@ -18,5 +18,5 @@ class ModExt:
     changelog: Optional[str] = None
     published_at: Optional[str] = None
     alt_download: Optional[str] = None
-    alt_versions: list["Mod"] = []
+    alt_versions: list["Mod"] = field(default_factory=list)
     suggests: Optional[dict[str, str]] = None
