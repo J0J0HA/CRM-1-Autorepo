@@ -44,7 +44,7 @@ def get_mod(settings: datacls.ModSettings) -> datacls.Mod:
     logger.info(f"[{settings.repo}] Cloning repository...")
     with ClonedRepo(repo.git_url) as clone:
         for rel in releases:
-            version = rel.tag.removeprefix("v")
+            version = rel.tag.removeprefix("v").removeprefix("V")
             logger.info(f"[{settings.repo}] [v{version}] Loading Metadata...")
             clone.repo.git.checkout(rel.tag)
             properties = {}
