@@ -15,7 +15,7 @@ def parse_quilt_mod_json(
     }
     metadata = loader_data.get("metadata", {})
     files = sorted(release.attached_files, key=lambda f: len(f[0]))
-    id_ = (loader_data.get("group") + "." + loader_data.get("id")) if loader_data.get("group") is not None else loader_data.get("id")
+    id_ = (loader_data.get("group") + "." + loader_data.get("id")) if loader_data.get("group") is not None else "io.github." + repo.owner + "." + loader_data.get("id")
     return Mod(
         id=settings.id or id_,
         name=metadata.get("name") or settings.repo.rsplit("/", 1)[-1],
@@ -30,6 +30,7 @@ def parse_quilt_mod_json(
             if name != "cosmic_quilt" and name != "cosmic_reach"
         ],
         ext=ModExt(
+            modid=loader_data.get("id"),
             icon=metadata.get("icon"),
             loader="quilt",
             loader_version=dependencies.get("cosmic_quilt"),

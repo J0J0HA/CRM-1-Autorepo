@@ -23,6 +23,7 @@ def parse_fabric_mod_json(
             if name != "fabricloader" and name != "cosmic_reach"
         ],
         ext=ModExt(
+            modid=data.get("id"),
             icon=data.get("icon"),
             loader="fabric",
             loader_version=dependencies.get("fabricloader"),
