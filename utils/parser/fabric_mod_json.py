@@ -5,7 +5,7 @@ def parse_fabric_mod_json(
     settings: ModSettings, repo: Repo, data: dict, release: Release
 ) -> Mod:
     dependencies = {
-        name: version.removeprefix(">").removeprefix("<").removeprefix("=")
+        name: version
         for name, version in data.get("depends", {}).items()
     }
     files = sorted(release.attached_files, key=lambda f: len(f[0]))
@@ -14,7 +14,7 @@ def parse_fabric_mod_json(
         name=data.get("name") or settings.repo.rsplit("/", 1)[-1],
         desc=data.get("description") or "",
         authors=data.get("authors") or repo.authors or repo.owner,
-        version=data.get("version") or release.tag.removeprefix("v"),
+        version=data.get("version") or release.tag.removeprefix("v").removeprefix("V"),
         game_version=dependencies.get("cosmic_reach"),
         url=files[-1][1] if files else release.link,
         deps=[

@@ -10,8 +10,8 @@ auth = Auth.Token(env("GITHUB_TOKEN"))
 g = Github(auth=auth)
 
 
-def get_repo(repo_name: str) -> datacls.Repo:
-    repo = g.get_repo(repo_name)
+def get_repo(settings: datacls.ModSettings) -> datacls.Repo:
+    repo = g.get_repo(settings.repo)
     return datacls.Repo(
         name=repo.full_name,
         git_url=repo.clone_url,
@@ -23,7 +23,7 @@ def get_repo(repo_name: str) -> datacls.Repo:
     )
 
 
-def get_releases(repo: datacls.Repo):
+def get_releases(settings: datacls.ModSettings, repo: datacls.Repo):
     return [
         datacls.Release(
             tag=r.tag_name,

@@ -17,3 +17,4 @@ class ModExt:
     published_at: str = None
     alt_download: str = None
     alt_versions: list["Mod"] = None
+    suggests: dict[str, str] = None

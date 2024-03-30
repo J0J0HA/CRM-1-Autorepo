@@ -33,8 +33,8 @@ def get_mod(settings: datacls.ModSettings) -> datacls.Mod:
     versions = {}
 
     logger.info(f"[{settings.repo}] Loading Metadata...")
-    repo = provider.get_repo(settings.repo)
-    releases = provider.get_releases(repo)
+    repo = provider.get_repo(settings)
+    releases = provider.get_releases(settings, repo)
     if not releases:
         logger.warning(
             f"[{settings.repo}] Skipping because it doesn't have any releases."
@@ -73,6 +73,12 @@ def get_mod(settings: datacls.ModSettings) -> datacls.Mod:
                     json_vars = replace_vars(json_content, properties)
                     json_data = json.loads(json_vars)
                 mod = parsers.parse_fabric_mod_json(settings, repo, json_data, rel)
+            elif clone["src/main/resources/quilt.mod.json"].exists():
+                with clone.open("src/main/resources/quilt.mod.json") as f:
+                    json_content = f.read()
+                    json_vars = replace_vars(json_content, properties)
+                    json_data = json.loads(json_vars)
+                mod = parsers.parse_quilt_mod_json(settings, repo, json_data, rel)
             else:
                 logger.warning(
                     f"[{settings.repo}] [v{version}] Skipping because it doesn't have a parsable config file."

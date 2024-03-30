@@ -1,8 +1,9 @@
 from . import github
-from . import codeberg
+from . import forgejo
 
 
 map = {
     "github": github,
-    "codeberg": codeberg,
+    "codeberg": forgejo,
+    "forgejo": forgejo,
 }

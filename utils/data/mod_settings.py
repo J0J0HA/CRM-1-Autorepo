@@ -10,3 +10,4 @@ class ModSettings:
     repo: str
     folder: Optional[str] = None
     id: Optional[str] = None
+    instance: Optional[str] = None
