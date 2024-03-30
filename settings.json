@@ -33,6 +33,12 @@
             "provider": "codeberg",
             "repo": "CRModders/voxelized-cosmos",
             "id": "me.cortex.voxy"
+        },
+        {
+            "provider": "forgejo",
+            "instance": "https://git.percraft.net:444",
+            "repo": "pietru/CR_OmniPower_Mod",
+            "id": "net.pietru.omni_power"
         }
     ],
     "rootId": "de.jojojux.crm-repo",
