@@ -9,6 +9,11 @@ This CRM-1 repository has a hjson and a json build.
 - [HJSON](https://crm-repo.jojojux.de/repo.hjson)
 - [JSON](https://crm-repo.jojojux.de/repo.json)
 
+Since providing the source repo of a mod is not always possible, I generate ``mod-is -> repo`` mappings too.
+
+- [HJSON](https://crm-repo.jojojux.de/repo_mapping.hjson)
+- [JSON](https://crm-repo.jojojux.de/repo_mapping.json)
+
 ## Description
 
 This is a CRM-1 repo updating its contents automatically from GitHub.
