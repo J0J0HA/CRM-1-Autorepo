@@ -53,6 +53,6 @@
     },
     "repos": [
         "https://repo.crmodders.dev/repository.hjson",
-        "https://crm-repo.jojojux.de/repo.hjson"
+        "https://crm-repo.jojojux.de/repo.json"
     ]
 }

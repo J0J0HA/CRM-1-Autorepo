@@ -72,6 +72,7 @@ async def get_repo_jarpath(
                 )
                 return
             files = clone.path("build/libs").iterdir()
+            assets = []
             for file in files:
                 old_path = file.absolute()
                 new_path = os.path.join("builds", repo.owner,
@@ -84,24 +85,25 @@ async def get_repo_jarpath(
                         ".jar") + f"-{counter}.jar"
                     counter += 1
                 os.rename(old_path, new_path)
-                release.attached_files.append((
+                assets.append((
                     file.name,
                     main_address.removesuffix("/") + "/" +
                     new_path.removeprefix("/"),
                 ))
-            sorted_assets = sorted(
+            release.attached_files = sorted(
                 [
-                    asset for asset in release.attached_files
+                    asset for asset in assets
                     if asset[0].endswith(".jar")
                 ],
                 key=lambda f: len(f[0]),
+                reverse=True,
             )
-            if not sorted_assets:
+            if not release.attached_files:
                 logger.warning(
                     f"[{settings.repo}] [{release.version}] Skipping, Build seems to have failed."
                 )
                 return
-            jar_path = sorted_assets[-1][1].removeprefix(
+            jar_path = release.attached_files[-1][1].removeprefix(
                 main_address.removesuffix("/") + "/")
             logger.success(
                 f"[{settings.repo}] [{release.version}] Build successful.")
@@ -114,7 +116,7 @@ async def get_repo_jarpath(
         logger.info(
             f"[{settings.repo}] [{release.version}] Downloading release build..."
         )
-        sorted_assets = sorted(
+        release.attached_files = sorted(
             [
                 asset for asset in release.attached_files
                 if asset[0].endswith(".jar")
@@ -123,11 +125,11 @@ async def get_repo_jarpath(
             reverse=True,
         )
         try:
-            jar_path = await download_jar(session, sorted_assets[0][1],
-                                          sorted_assets[0][0])
+            jar_path = await download_jar(session, release.attached_files[-1][1],
+                                          release.attached_files[-1][0])
         except TimeoutError:
             logger.error(
-                f"[{settings.repo}] [{release.version}] Download timed out: {sorted_assets[0][1]}"
+                f"[{settings.repo}] [{release.version}] Download timed out: {release.attached_files[-1][1]}"
             )
             return
         logger.info(
@@ -173,7 +175,7 @@ async def get_from_release(
 
     if ("$" in mod.version or "$" in mod.ext.modid or "$" in mod.id):
         logger.warning(
-            f"[{settings.repo}] [{release.version}] Skipping because it has invalid characters in the version, modid, loader_version, game_version, loader or id."
+            f"[{settings.repo}] [{release.version}] Skipping because it has invalid characters in the version or modid."
         )
         return
     logger.info(f"[{settings.repo}] [{release.version}] Jar read.")
@@ -360,6 +362,10 @@ def generate_repo_mapping(repos):
         for k, v in sorted(
             repo_results.items(), key=lambda item: len(item[1]), reverse=True)
     }
+
+    for repo_id, repo_mods in repo_results.items():
+        for mod in repo_mods:
+            print(repo_id, mod["id"])
 
     for repo_id, repo_mods in repo_results.items():
         logger.info(f"[{repo_id}] Processing mods...")

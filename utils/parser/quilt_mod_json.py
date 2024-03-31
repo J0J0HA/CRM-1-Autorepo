@@ -12,7 +12,6 @@ def parse_quilt_mod_json(
         item["id"]: item["versions"] for item in loader_data.get("suggests", [])
     }
     metadata = loader_data.get("metadata", {})
-    files = sorted(release.attached_files, key=lambda f: len(f[0]))
     id_ = (
         (loader_data.get("group") + "." + loader_data.get("id"))
         if loader_data.get("group") is not None
@@ -25,7 +24,7 @@ def parse_quilt_mod_json(
         authors=metadata.get("contributors", {}).keys() or repo.authors or repo.owner,
         version=loader_data.get("version"),
         game_version=dependencies.get("cosmic_reach"),
-        url=files[-1][1] if files else release.link,
+        url=release.attached_files[-1][1] if release.attached_files else release.link,
         deps=[
             Dependency(name, version, None)
             for name, version in dependencies.items()
@@ -43,7 +42,7 @@ def parse_quilt_mod_json(
             issues=repo.issue_url,
             owner=repo.owner,
             changelog=release.link,
-            alt_download=files,
+            alt_download=release.attached_files,
             alt_versions=[],
             published_at=release.published_at,
             suggests=suggests,
