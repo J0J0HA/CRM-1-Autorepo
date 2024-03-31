@@ -6,7 +6,6 @@ from utils import (
     ClonedRepo,
     provider as providers,
     parser as parsers,
-    replace_vars,
     UnzippedJar,
     download_jar,
 )
@@ -19,7 +18,7 @@ import hjson
 
 logger.remove()
 logger.add(
-    sys.stdout,
+    sys.stderr,
     format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> <blue>|</blue> <lvl>{level:<7}</lvl> <blue>|</blue> <lvl>{message}</lvl>",
     level="INFO",
     colorize=True,
@@ -29,11 +28,15 @@ logger.add(
     format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level:<7} | {message}",
     level="INFO",
     colorize=False,
-    
 )
 
 
-def get_from_release(main_address: str, settings: datacls.ModSettings, repo: datacls.Repo, release: datacls.Release) -> datacls.Mod:
+def get_repo_jarpath(
+    main_address: str,
+    settings: datacls.ModSettings,
+    repo: datacls.Repo,
+    release: datacls.Release,
+) -> str:
     if not release.is_prebuilt:
         logger.info(f"[{settings.repo}] [{release.version}] Cloning repository...")
         with ClonedRepo(repo.git_url, ref=release.tag, no_delete=True) as clone:
@@ -56,9 +59,10 @@ def get_from_release(main_address: str, settings: datacls.ModSettings, repo: dat
             files = clone.path("build/libs").iterdir()
             os.chdir(cur_dir)
             for file in files:
-                print(file)
                 old_path = file.absolute()
-                new_path = os.path.join("builds", repo.owner, repo.name.rsplit("/")[-1], file.name)
+                new_path = os.path.join(
+                    "builds", repo.owner, repo.name.rsplit("/")[-1], file.name
+                )
                 os.makedirs(os.path.dirname(new_path), exist_ok=True)
                 counter = 0
                 pause_new_path = new_path
@@ -66,7 +70,14 @@ def get_from_release(main_address: str, settings: datacls.ModSettings, repo: dat
                     new_path = pause_new_path.removesuffix(".jar") + f"-{counter}.jar"
                     counter += 1
                 os.rename(old_path, new_path)
-                release.attached_files.append((file.name, main_address.removesuffix("/") + "/" + new_path.removeprefix("/")))
+                release.attached_files.append(
+                    (
+                        file.name,
+                        main_address.removesuffix("/")
+                        + "/"
+                        + new_path.removeprefix("/"),
+                    )
+                )
             sorted_assets = sorted(
                 [
                     asset
@@ -74,26 +85,28 @@ def get_from_release(main_address: str, settings: datacls.ModSettings, repo: dat
                     if asset[0].endswith(".jar")
                 ],
                 key=lambda f: len(f[0]),
+                reverse=True,
             )
             if not sorted_assets:
                 logger.warning(
                     f"[{settings.repo}] [{release.version}] Skipping, Build seems to have failed."
                 )
                 return
-            jar_path = sorted_assets[0][1].removeprefix(main_address.removesuffix("/") + "/")
+            jar_path = sorted_assets[0][1].removeprefix(
+                main_address.removesuffix("/") + "/"
+            )
     else:
+        return
         if not release.attached_files:
             logger.warning(
                 f"[{settings.repo}] [{release.version}] Skipping because release doesn't have any assets."
             )
             return
-        logger.info(f"[{settings.repo}] [{release.version}] Downloading release build...")
+        logger.info(
+            f"[{settings.repo}] [{release.version}] Downloading release build..."
+        )
         sorted_assets = sorted(
-            [
-                asset
-                for asset in release.attached_files
-                if asset[0].endswith(".jar")
-            ],
+            [asset for asset in release.attached_files if asset[0].endswith(".jar")],
             key=lambda f: len(f[0]),
         )
         try:
@@ -103,6 +116,18 @@ def get_from_release(main_address: str, settings: datacls.ModSettings, repo: dat
                 f"[{settings.repo}] [{release.version}] Download timed out: {sorted_assets[0][1]}"
             )
             return
+    return jar_path
+
+
+def get_from_release(
+    main_address: str,
+    settings: datacls.ModSettings,
+    repo: datacls.Repo,
+    release: datacls.Release,
+) -> datacls.Mod:
+    jar_path = get_repo_jarpath(main_address, settings, repo, release)
+    if not jar_path:
+        return
 
     logger.info(f"[{settings.repo}] [{release.version}] Reading jar...")
     with UnzippedJar(jar_path) as jar:
@@ -152,9 +177,9 @@ def get_mod(main_address: str, settings: datacls.ModSettings) -> datacls.Mod:
     versions = [
         get_from_release(main_address, settings, repo, release) for release in releases
     ]
-    
+
     versions = [version for version in versions if version is not None]
-    
+
     added_versions = []
     for version in versions:
         if version.version not in added_versions:
@@ -170,7 +195,6 @@ def get_mod(main_address: str, settings: datacls.ModSettings) -> datacls.Mod:
             f"[{settings.repo}] Skipping because it doesn't have any versions."
         )
         return None
-
 
     logger.info(f"[{settings.repo}] Finalizing...")
     versions_sorted = [
@@ -195,7 +219,8 @@ def generate_repo(setts):
     mods = [
         omod
         for omod in (
-            get_mod(setts["address"], datacls.ModSettings.from_dict(mod)) for mod in setts["mods"]
+            get_mod(setts["address"], datacls.ModSettings.from_dict(mod))
+            for mod in setts["mods"]
         )
         if omod
     ]
@@ -309,7 +334,6 @@ def main():
         setts = json.load(f)
     generate_repo(setts)
     generate_repo_mapping(setts["repos"])
-    print(os.getcwd())
     logger.success(f"Finished. Took {time.time() - start:.2f}s.")
 
 
