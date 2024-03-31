@@ -105,7 +105,9 @@ class UnzippedJar(TempDir):
         super().__exit__(exc_type, exc_val, exc_tb)
 
 
-async def download_jar(session: aiohttp.ClientSession, url, name="download.jar"):
+async def download_jar(session: aiohttp.ClientSession,
+                       url,
+                       name="download.jar"):
     path = tempfile.mkdtemp() + "/" + name
     try:
         with open(path, "wb") as f:
