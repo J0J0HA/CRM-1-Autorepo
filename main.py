@@ -66,7 +66,7 @@ def get_from_release(main_address: str, settings: datacls.ModSettings, repo: dat
                     new_path = pause_new_path.removesuffix(".jar") + f"-{counter}.jar"
                     counter += 1
                 os.rename(old_path, new_path)
-                release.attached_files.append((file.name, main_address + "/" + new_path))
+                release.attached_files.append((file.name, main_address.removesuffix("/") + "/" + new_path.removeprefix("/")))
             sorted_assets = sorted(
                 [
                     asset
@@ -80,7 +80,7 @@ def get_from_release(main_address: str, settings: datacls.ModSettings, repo: dat
                     f"[{settings.repo}] [{release.version}] Skipping, Build seems to have failed."
                 )
                 return
-            jar_path = sorted_assets[0][1].removeprefix(main_address + "/")
+            jar_path = sorted_assets[0][1].removeprefix(main_address.removesuffix("/") + "/")
     else:
         if not release.attached_files:
             logger.warning(
@@ -140,9 +140,9 @@ def get_mod(main_address: str, settings: datacls.ModSettings) -> datacls.Mod:
 
     logger.info(f"[{settings.repo}] Loading Metadata...")
     repo = provider.get_repo(settings)
-    releases = provider.get_releases(settings, repo) + [
-        provider.get_latest_commit_as_release(settings, repo)
-    ]
+    releases = provider.get_releases(settings, repo)
+    if settings.dev_builds == True:
+        releases.append(provider.get_latest_commit_as_release(settings, repo))
     if not releases:
         logger.warning(
             f"[{settings.repo}] Skipping because it doesn't have any releases."

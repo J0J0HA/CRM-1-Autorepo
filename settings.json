@@ -3,38 +3,45 @@
         {
             "provider": "github",
             "repo": "CRModders/FluxAPI",
-            "id": "dev.crmodders.flux"
+            "id": "dev.crmodders.flux",
+            "devBuilds": true
         },
         {
             "provider": "github",
             "repo": "repletsin5/lunar-api",
-            "id": "com.github.repletsin5.lunar-api"
+            "id": "com.github.repletsin5.lunar-api",
+            "devBuilds": false
         },
         {
             "provider": "github",
             "repo": "NikRasOff/CosmicReach-Seamless-Portals",
-            "id": "com.nikrasoff.seamlessportals"
+            "id": "com.nikrasoff.seamlessportals",
+            "devBuilds": false
         },
         {
             "provider": "github",
-            "repo": "ForwarD-NerN/BlockEntityPrototype"
+            "repo": "ForwarD-NerN/BlockEntityPrototype",
+            "devBuilds": true
         },
         {
             "provider": "codeberg",
             "repo": "CRModders/distant-cosmos",
             "id": "com.coolgi.distantcosmos",
-            "folder": "quilt"
+            "folder": "quilt",
+            "devBuilds": false
         },
         {
             "provider": "codeberg",
             "repo": "CRModders/voxelized-cosmos",
-            "id": "me.cortex.voxy"
+            "id": "me.cortex.voxy",
+            "devBuilds": false
         },
         {
             "provider": "forgejo",
             "instance": "https://git.percraft.net:444",
             "repo": "pietru/CR_OmniPower_Mod",
-            "id": "net.pietru.omni_power"
+            "id": "net.pietru.omni_power",
+            "devBuilds": true
         }
     ],
     "rootId": "de.jojojux.crm-repo",

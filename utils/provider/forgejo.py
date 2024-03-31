@@ -49,6 +49,7 @@ def get_releases(settings: datacls.ModSettings, repo: datacls.Repo):
         for r in releases_data
     ]
 
+
 def get_latest_commit_as_release(settings: datacls.ModSettings, repo: datacls.Repo):
     instance = (settings.instance or "https://codeberg.org").removesuffix("/")
     resp = requests.get(f"{instance}/api/v1/repos/{repo.name}/commits", timeout=10)

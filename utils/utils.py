@@ -31,7 +31,7 @@ class ClonedRepo(TempDir):
         super().__init__(no_delete=no_delete)
         self.repo = Repo.clone_from(git_url, self.dir)
         self.html_url = html_url or git_url.removesuffix(".git")
-        
+
         if ref:
             self.repo.git.checkout(ref)
 
@@ -84,7 +84,6 @@ def download_jar(url, name="download.jar"):
     except TimeoutError:
         raise TimeoutError(f"Download timed out: {url}")
     return path
-        
 
 
 def replace_vars(text, vars):

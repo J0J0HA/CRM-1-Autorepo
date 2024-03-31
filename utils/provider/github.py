@@ -39,6 +39,7 @@ def get_releases(settings: datacls.ModSettings, repo: datacls.Repo):
         for r in g.get_repo(repo.name).get_releases()
     ]
 
+
 def get_latest_commit_as_release(settings: datacls.ModSettings, repo: datacls.Repo):
     latest_commit = g.get_repo(repo.name).get_commits()[0]
     return datacls.Release(

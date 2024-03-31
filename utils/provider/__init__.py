@@ -8,11 +8,21 @@ class _ProviderTyping:
         # This is only a type hint. look in the forgejo.py and github.py for the actual implementation
         raise NotImplementedError
 
-    def get_releases(self, settings: datacls.ModSettings, repo: datacls.Repo) -> list[datacls.Release]:
+    def get_releases(
+        self, settings: datacls.ModSettings, repo: datacls.Repo
+    ) -> list[datacls.Release]:
         # This is only a type hint. look in the forgejo.py and github.py for the actual implementation
         raise NotImplementedError
-    
-    def get_latest_commit_as_release(self, settings: datacls.ModSettings, repo: datacls.Repo) -> datacls.Release:
+
+    def get_latest_commit_as_release(
+        self, settings: datacls.ModSettings, repo: datacls.Repo
+    ) -> datacls.Release:
+        # This is only a type hint. look in the forgejo.py and github.py for the actual implementation
+        raise NotImplementedError
+
+    def get_latest_action_run_as_release(
+        self, settings: datacls.ModSettings, repo: datacls.Repo
+    ) -> datacls.Release:
         # This is only a type hint. look in the forgejo.py and github.py for the actual implementation
         raise NotImplementedError
 
