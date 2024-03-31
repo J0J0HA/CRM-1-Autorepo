@@ -1,4 +1,6 @@
 import os
+import asyncio
+import aiohttp
 import time
 from typing import Optional
 from utils import (
@@ -31,12 +33,13 @@ logger.add(
 )
 
 
-def get_repo_jarpath(
+async def get_repo_jarpath(
+    session: aiohttp.ClientSession,
     main_address: str,
     settings: datacls.ModSettings,
     repo: datacls.Repo,
     release: datacls.Release,
-) -> str:
+) -> Optional[str]:
     if not release.is_prebuilt:
         logger.info(f"[{settings.repo}] [{release.version}] Cloning repository...")
         with ClonedRepo(repo.git_url, ref=release.tag, no_delete=True) as clone:
@@ -96,7 +99,6 @@ def get_repo_jarpath(
                 main_address.removesuffix("/") + "/"
             )
     else:
-        return
         if not release.attached_files:
             logger.warning(
                 f"[{settings.repo}] [{release.version}] Skipping because release doesn't have any assets."
@@ -110,7 +112,9 @@ def get_repo_jarpath(
             key=lambda f: len(f[0]),
         )
         try:
-            jar_path = download_jar(sorted_assets[0][1], sorted_assets[0][0])
+            jar_path = await download_jar(
+                session, sorted_assets[0][1], sorted_assets[0][0]
+            )
         except TimeoutError:
             logger.error(
                 f"[{settings.repo}] [{release.version}] Download timed out: {sorted_assets[0][1]}"
@@ -120,15 +124,11 @@ def get_repo_jarpath(
 
 
 def get_from_release(
-    main_address: str,
+    jar_path: str,
     settings: datacls.ModSettings,
     repo: datacls.Repo,
     release: datacls.Release,
-) -> datacls.Mod:
-    jar_path = get_repo_jarpath(main_address, settings, repo, release)
-    if not jar_path:
-        return
-
+) -> Optional[datacls.Mod]:
     logger.info(f"[{settings.repo}] [{release.version}] Reading jar...")
     with UnzippedJar(jar_path) as jar:
         mod: Optional[datacls.Mod] = None
@@ -159,27 +159,38 @@ def get_from_release(
     return mod
 
 
-def get_mod(main_address: str, settings: datacls.ModSettings) -> datacls.Mod:
-    provider = providers.map[settings.provider]
-    versions = {}
+async def get_jars_from_releases(
+    main_address: str,
+    settings: datacls.ModSettings,
+    repo: datacls.Repo,
+    releases: list[datacls.Release],
+) -> list[tuple[datacls.Release, str]]:
+    async with asyncio.TaskGroup() as tg:
+        async with aiohttp.ClientSession() as session:
+            for release in releases:
+                tasks = [
+                    tg.create_task(
+                        get_repo_jarpath(session, main_address, settings, repo, release)
+                    )
+                ]
+                results = await asyncio.gather(*tasks)
+                return [(release, result) for result in results if result]
 
-    logger.info(f"[{settings.repo}] Loading Metadata...")
-    repo = provider.get_repo(settings)
-    releases = provider.get_releases(settings, repo)
-    if settings.dev_builds == True:
-        releases.append(provider.get_latest_commit_as_release(settings, repo))
-    if not releases:
-        logger.warning(
-            f"[{settings.repo}] Skipping because it doesn't have any releases."
-        )
-        return None
 
-    versions = [
-        get_from_release(main_address, settings, repo, release) for release in releases
-    ]
+def get_meta_from_releases(
+    jarpaths: list[tuple[datacls.Release, str]],
+    settings: datacls.ModSettings,
+    repo: datacls.Repo,
+) -> list[datacls.Mod]:
+    for release, jar_path in jarpaths:
+        version = get_from_release(jar_path, settings, repo, release)
+        if version:
+            yield version
 
-    versions = [version for version in versions if version is not None]
 
+def filter_versions(
+    versions: list[datacls.Mod], settings: datacls.ModSettings
+) -> list[datacls.Mod]:
     added_versions = []
     for version in versions:
         if version.version not in added_versions:
@@ -188,15 +199,7 @@ def get_mod(main_address: str, settings: datacls.ModSettings) -> datacls.Mod:
             logger.warning(
                 f"[{settings.repo}] Skipping duplicate {version.version} because it has duplicate versions."
             )
-            return None
-
-    if not versions:
-        logger.warning(
-            f"[{settings.repo}] Skipping because it doesn't have any versions."
-        )
-        return None
-
-    logger.info(f"[{settings.repo}] Finalizing...")
+            continue
     versions_sorted = [
         version
         for version in sorted(
@@ -208,22 +211,50 @@ def get_mod(main_address: str, settings: datacls.ModSettings) -> datacls.Mod:
             reverse=True,
         )
     ]
-    mod = versions_sorted[0]
-    mod.ext.alt_versions = versions_sorted[1:]
+
+    return versions_sorted
+
+
+async def get_mod(main_address: str, settings: datacls.ModSettings) -> datacls.Mod:
+    logger.info(f"[{settings.repo}] Loading Metadata...")
+    provider = providers.map[settings.provider]
+
+    repo = provider.get_repo(settings)
+    releases = provider.get_releases(settings, repo)
+    if settings.dev_builds == True:
+        releases.append(provider.get_latest_commit_as_release(settings, repo))
+    if not releases:
+        logger.warning(
+            f"[{settings.repo}] Skipping because it doesn't have any releases."
+        )
+        return None
+    jarpaths = await get_jars_from_releases(main_address, settings, repo, releases)
+    versions_unfiltered = get_meta_from_releases(jarpaths, settings, repo)
+    filtered_versions = filter_versions(versions_unfiltered, settings)
+
+    versions = list(filtered_versions)
+
+    if not versions:
+        logger.warning(
+            f"[{settings.repo}] Skipping because it doesn't have any versions."
+        )
+        return None
+
+    logger.info(f"[{settings.repo}] Finalizing...")
+
+    mod = versions[0]
+    mod.ext.alt_versions = versions[1:]
     logger.success(f"[{settings.repo}] Mod loaded.")
     return mod
 
 
-def generate_repo(setts):
+async def generate_repo(setts):
     logger.info("Loading Mods...")
     mods = [
-        omod
-        for omod in (
-            get_mod(setts["address"], datacls.ModSettings.from_dict(mod))
-            for mod in setts["mods"]
-        )
-        if omod
+        await get_mod(setts["address"], datacls.ModSettings.from_dict(mod))
+        for mod in setts["mods"]
     ]
+    mods = [mod for mod in mods if mod]
 
     logger.info("Generating output content...")
     file_content = {
@@ -327,15 +358,15 @@ def generate_repo_mapping(repos):
     logger.success("Generated repo mapping.")
 
 
-def main():
+async def main():
     start = time.time()
     logger.info("Reading config...")
     with open("settings.json", "r", encoding="utf-8") as f:
         setts = json.load(f)
-    generate_repo(setts)
+    await generate_repo(setts)
     generate_repo_mapping(setts["repos"])
     logger.success(f"Finished. Took {time.time() - start:.2f}s.")
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

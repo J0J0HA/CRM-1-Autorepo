@@ -3,7 +3,8 @@ import shutil
 import tempfile
 from git import Repo
 import pathlib
-
+import aiohttp
+import aiofiles
 import requests
 
 
@@ -73,13 +74,16 @@ class UnzippedJar(TempDir):
         super().__exit__(exc_type, exc_val, exc_tb)
 
 
-def download_jar(url, name="download.jar"):
+async def download_jar(session: aiohttp.ClientSession, url, name="download.jar"):
     path = tempfile.mkdtemp() + "/" + name
     try:
         with open(path, "wb") as f:
-            with requests.get(url, stream=True, timeout=10) as r:
-                r.raise_for_status()
-                for chunk in r.iter_content(chunk_size=8192):
+            async with session.get(url) as response:
+                response.raise_for_status()
+                while True:
+                    chunk = await response.content.read(1024)
+                    if not chunk:
+                        break
                     f.write(chunk)
     except TimeoutError:
         raise TimeoutError(f"Download timed out: {url}")
