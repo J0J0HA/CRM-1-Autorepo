@@ -64,6 +64,8 @@ def get_latest_commit_as_release(settings: datacls.ModSettings, repo: datacls.Re
     :param repo: datacls.Repo:
     :param settings: datacls.ModSettings:
     :param repo: datacls.Repo:
+    :param settings: datacls.ModSettings: 
+    :param repo: datacls.Repo: 
 
     """
     instance = (settings.instance or "https://codeberg.org").removesuffix("/")

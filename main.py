@@ -220,6 +220,8 @@ def filter_versions(
     :param settings: datacls.ModSettings:
     :param versions: list[datacls.Mod]:
     :param settings: datacls.ModSettings:
+    :param versions: list[datacls.Mod]: 
+    :param settings: datacls.ModSettings: 
 
     """
     added_versions: list[datacls.Mod] = []
@@ -321,7 +323,7 @@ async def generate_repo(session, setts):
 def generate_repo_mapping(repos):
     """
 
-    :param repos:
+    :param repos: 
 
     """
     logger.info("Generating repo mapping...")
