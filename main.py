@@ -25,7 +25,7 @@ logger.add(
     sys.stderr,
     format=
     "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> <blue>|</blue> <lvl>{level:<7}</lvl> <blue>|</blue> <lvl>{message}</lvl>",
-    level="SUCCESS",
+    level="INFO",
     colorize=True,
 )
 logger.add(
@@ -95,7 +95,6 @@ async def get_repo_jarpath(
                     if asset[0].endswith(".jar")
                 ],
                 key=lambda f: len(f[0]),
-                reverse=True,
             )
             if not sorted_assets:
                 logger.warning(
@@ -130,7 +129,7 @@ async def get_repo_jarpath(
                 f"[{settings.repo}] [{release.version}] Download timed out: {sorted_assets[0][1]}"
             )
             return
-        logger.success(
+        logger.info(
             f"[{settings.repo}] [{release.version}] Download successful.")
     return jar_path
 
@@ -142,7 +141,7 @@ async def get_from_release(
     release: datacls.Release,
 ) -> Optional[datacls.Mod]:
     logger.info(f"[{settings.repo}] [{release.version}] Reading jar...")
-    with UnzippedJar(jar_path) as jar:
+    with UnzippedJar(jar_path, True) as jar:
         mod: Optional[datacls.Mod] = None
         if jar["fabric.mod.json"].exists():
             with jar.open("fabric.mod.json") as f:
@@ -162,8 +161,8 @@ async def get_from_release(
             )
             return
 
-    if release.version == "dev":
-        mod.version = "dev"
+    if not release.is_prebuilt:
+        mod.version = release.version
 
     if release.version != mod.version:
         logger.warning(
@@ -171,14 +170,12 @@ async def get_from_release(
         )
         logger.info(f"Using the mod version ({mod.version}) as version.")
 
-    if ("$" in mod.version or "$" in mod.ext.modid
-            or "$" in mod.ext.loader_version or "$" in mod.game_version
-            or "$" in mod.ext.loader or "$" in mod.id):
+    if ("$" in mod.version or "$" in mod.ext.modid or "$" in mod.id):
         logger.warning(
             f"[{settings.repo}] [{release.version}] Skipping because it has invalid characters in the version, modid, loader_version, game_version, loader or id."
         )
         return
-    logger.success(f"[{settings.repo}] [{release.version}] Jar read.")
+    logger.info(f"[{settings.repo}] [{release.version}] Jar read.")
     return mod
 
 
