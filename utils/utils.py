@@ -44,7 +44,7 @@ class ClonedRepo(TempDir):
     def path(self, file) -> pathlib.Path:
         """
 
-        :param file: 
+        :param file:
 
         """
         return self.dir / file
@@ -53,8 +53,8 @@ class ClonedRepo(TempDir):
         """
 
         :param file: param *args:
-        :param *args: 
-        :param **kwargs: 
+        :param *args:
+        :param **kwargs:
 
         """
         return open(self.path(file), *args, **kwargs)
@@ -80,7 +80,7 @@ class UnzippedJar(TempDir):
     def path(self, file) -> pathlib.Path:
         """
 
-        :param file: 
+        :param file:
 
         """
         return self.dir / file
@@ -89,8 +89,8 @@ class UnzippedJar(TempDir):
         """
 
         :param file: param *args:
-        :param *args: 
-        :param **kwargs: 
+        :param *args:
+        :param **kwargs:
 
         """
         return open(self.path(file), *args, **kwargs)
@@ -125,7 +125,7 @@ def replace_vars(text, vars):
     """
 
     :param text: param vars:
-    :param vars: 
+    :param vars:
 
     """
     for var in vars:
@@ -134,7 +134,7 @@ def replace_vars(text, vars):
     def replace(match):
         """
 
-        :param match: 
+        :param match:
 
         """
         if match.group(1) not in vars:
