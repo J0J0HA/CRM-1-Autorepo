@@ -39,7 +39,7 @@ def get_from_release(main_address: str, settings: datacls.ModSettings, repo: dat
             cur_dir = os.getcwd()
             os.chdir(clone.dir)
             logger.info(f"[{settings.repo}] [{release.version}] Building jar...")
-            ret_val = os.system("./gradlew build")
+            ret_val = os.system("gradle build")
             if ret_val != 0:
                 logger.warning(
                     f"[{settings.repo}] [{release.version}] Skipping because build failed. (Invalid return value)"
