@@ -11,9 +11,12 @@ import hjson
 import requests
 from loguru import logger
 
-from utils import ClonedRepo, UnzippedJar, datacls, download_jar
+from utils import ClonedRepo
+from utils import datacls
+from utils import download_jar
 from utils import parser as parsers
 from utils import provider as providers
+from utils import UnzippedJar
 
 is_windows = platform.system() == "Windows"
 
