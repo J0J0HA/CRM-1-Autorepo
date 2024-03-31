@@ -1,6 +1,7 @@
 from github import Github, Auth
 from .. import datacls
 import environs
+from functools import lru_cache
 
 
 env = environs.Env()
@@ -10,8 +11,11 @@ auth = Auth.Token(env("GITHUB_TOKEN"))
 g = Github(auth=auth)
 
 
-def get_repo(settings: datacls.ModSettings) -> datacls.Repo:
-    repo = g.get_repo(settings.repo)
+g_get_repo = lru_cache(maxsize=128)(g.get_repo)
+
+
+async def get_repo(session, settings: datacls.ModSettings) -> datacls.Repo:
+    repo = g_get_repo(settings.repo)
     return datacls.Repo(
         name=repo.full_name,
         git_url=repo.clone_url,
@@ -23,7 +27,7 @@ def get_repo(settings: datacls.ModSettings) -> datacls.Repo:
     )
 
 
-def get_releases(settings: datacls.ModSettings, repo: datacls.Repo):
+async def get_releases(session, settings: datacls.ModSettings, repo: datacls.Repo):
     return [
         datacls.Release(
             tag=r.tag_name,
@@ -36,12 +40,12 @@ def get_releases(settings: datacls.ModSettings, repo: datacls.Repo):
             prerelease=r.prerelease,
             link=r.html_url,
         )
-        for r in g.get_repo(repo.name).get_releases()
+        for r in g_get_repo(settings.repo).get_releases()
     ]
 
 
 def get_latest_commit_as_release(settings: datacls.ModSettings, repo: datacls.Repo):
-    latest_commit = g.get_repo(repo.name).get_commits()[0]
+    latest_commit = g_get_repo(settings.repo).get_commits()[0]
     return datacls.Release(
         tag=latest_commit.sha,
         version="dev",

@@ -1,16 +1,18 @@
 from datetime import datetime
+
+import aiohttp
 from .. import datacls
 import requests
 
 
-def get_repo(settings: datacls.ModSettings) -> datacls.Repo:
+async def get_repo(session: aiohttp.ClientSession, settings: datacls.ModSettings) -> datacls.Repo:
     instance = (settings.instance or "https://codeberg.org").removesuffix("/")
-    resp = requests.get(f"{instance}/api/v1/repos/{settings.repo}", timeout=10)
-    repo_data = resp.json()
-    commits_resp = requests.get(
+    async with session.get(f"{instance}/api/v1/repos/{settings.repo}") as resp:
+        repo_data = await resp.json()
+    async with session.get(
         f"{instance}/api/v1/repos/{settings.repo}/commits", timeout=10
-    )
-    commits_data = commits_resp.json()
+    ) as commits_resp:
+        commits_data = await commits_resp.json()
     contributors = list(
         set(commit["commit"]["author"]["name"] for commit in commits_data)
     )
@@ -25,10 +27,10 @@ def get_repo(settings: datacls.ModSettings) -> datacls.Repo:
     )
 
 
-def get_releases(settings: datacls.ModSettings, repo: datacls.Repo):
+async def get_releases(session: aiohttp.ClientSession, settings: datacls.ModSettings, repo: datacls.Repo):
     instance = (settings.instance or "https://codeberg.org").removesuffix("/")
-    resp = requests.get(f"{instance}/api/v1/repos/{repo.name}/releases", timeout=10)
-    releases_data = resp.json()
+    async with session.get(f"{instance}/api/v1/repos/{repo.name}/releases") as resp:
+        releases_data = await resp.json()
     return [
         datacls.Release(
             tag=r["tag_name"],
@@ -52,7 +54,7 @@ def get_releases(settings: datacls.ModSettings, repo: datacls.Repo):
 
 def get_latest_commit_as_release(settings: datacls.ModSettings, repo: datacls.Repo):
     instance = (settings.instance or "https://codeberg.org").removesuffix("/")
-    resp = requests.get(f"{instance}/api/v1/repos/{repo.name}/commits", timeout=10)
+    resp = requests.get(f"{instance}/api/v1/repos/{repo.name}/commits")
     commits_data = resp.json()
     commit = commits_data[0]
     return datacls.Release(
