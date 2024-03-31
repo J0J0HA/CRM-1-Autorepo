@@ -3,6 +3,7 @@ from . import forgejo, github
 
 
 class _ProviderTyping:
+    """ """
     async def get_repo(self, settings: datacls.ModSettings) -> datacls.Repo:
         # This is only a type hint. look in the forgejo.py and github.py for the actual implementation
         raise NotImplementedError

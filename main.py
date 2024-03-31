@@ -214,6 +214,12 @@ async def get_meta_from_releases(
 def filter_versions(
     versions: list[datacls.Mod], settings: datacls.ModSettings
 ) -> list[datacls.Mod]:
+    """
+
+    :param versions: list[datacls.Mod]: 
+    :param settings: datacls.ModSettings: 
+
+    """
     added_versions: list[datacls.Mod] = []
     for version in versions:
         if not version:
@@ -311,6 +317,11 @@ async def generate_repo(session, setts):
 
 
 def generate_repo_mapping(repos):
+    """
+
+    :param repos: 
+
+    """
     logger.info("Generating repo mapping...")
 
     repo_results = {}
