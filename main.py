@@ -101,7 +101,7 @@ async def get_repo_jarpath(
                     f"[{settings.repo}] [{release.version}] Skipping, Build seems to have failed."
                 )
                 return
-            jar_path = sorted_assets[0][1].removeprefix(
+            jar_path = sorted_assets[-1][1].removeprefix(
                 main_address.removesuffix("/") + "/")
             logger.success(
                 f"[{settings.repo}] [{release.version}] Build successful.")
@@ -120,6 +120,7 @@ async def get_repo_jarpath(
                 if asset[0].endswith(".jar")
             ],
             key=lambda f: len(f[0]),
+            reverse=True,
         )
         try:
             jar_path = await download_jar(session, sorted_assets[0][1],
