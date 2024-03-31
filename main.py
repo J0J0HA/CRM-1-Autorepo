@@ -218,6 +218,8 @@ def filter_versions(versions: list[datacls.Mod],
 
     :param versions: list[datacls.Mod]:
     :param settings: datacls.ModSettings:
+    :param versions: list[datacls.Mod]:
+    :param settings: datacls.ModSettings:
 
     """
     added_versions: list[datacls.Mod] = []

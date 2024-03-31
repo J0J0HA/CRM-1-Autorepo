@@ -52,7 +52,7 @@ class ClonedRepo(TempDir):
     def open(self, file, *args, **kwargs) -> open:
         """
 
-        :param file:
+        :param file: param *args:
         :param *args:
         :param **kwargs:
 
@@ -88,7 +88,7 @@ class UnzippedJar(TempDir):
     def open(self, file, *args, **kwargs) -> open:
         """
 
-        :param file:
+        :param file: param *args:
         :param *args:
         :param **kwargs:
 
@@ -126,7 +126,7 @@ async def download_jar(session: aiohttp.ClientSession,
 def replace_vars(text, vars):
     """
 
-    :param text:
+    :param text: param vars:
     :param vars:
 
     """
