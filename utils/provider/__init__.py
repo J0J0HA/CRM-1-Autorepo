@@ -1,6 +1,5 @@
-from . import github
-from . import forgejo
 from .. import data as datacls
+from . import forgejo, github
 
 
 class _ProviderTyping:

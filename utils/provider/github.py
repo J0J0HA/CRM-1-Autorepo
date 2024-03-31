@@ -1,8 +1,9 @@
-from github import Github, Auth
-from .. import datacls
-import environs
 from functools import lru_cache
 
+import environs
+from github import Auth, Github
+
+from .. import datacls
 
 env = environs.Env()
 env.read_env()

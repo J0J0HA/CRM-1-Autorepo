@@ -1,8 +1,9 @@
 from datetime import datetime
 
 import aiohttp
-from .. import datacls
 import requests
+
+from .. import datacls
 
 
 async def get_repo(

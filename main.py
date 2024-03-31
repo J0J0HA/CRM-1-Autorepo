@@ -1,23 +1,19 @@
-import os
 import asyncio
-import aiohttp
+import json
+import os
+import platform
+import sys
 import time
 from typing import Optional
-from utils import (
-    datacls,
-    ClonedRepo,
-    provider as providers,
-    parser as parsers,
-    UnzippedJar,
-    download_jar,
-)
+
+import aiohttp
+import hjson
 import requests
 from loguru import logger
-import json
-import sys
-import hjson
-import platform
 
+from utils import ClonedRepo, UnzippedJar, datacls, download_jar
+from utils import parser as parsers
+from utils import provider as providers
 
 is_windows = platform.system() == "Windows"
 
