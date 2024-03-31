@@ -34,7 +34,8 @@ async def get_releases(session, settings: datacls.ModSettings, repo: datacls.Rep
             version=r.tag_name.removeprefix("v").removeprefix("V"),
             title=r.title,
             body=r.body,
-            attached_files=[(a.name, a.browser_download_url) for a in r.get_assets()],
+            attached_files=[(a.name, a.browser_download_url)
+                            for a in r.get_assets()],
             by=r.author.login,
             published_at=r.published_at.timestamp(),
             prerelease=r.prerelease,
