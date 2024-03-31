@@ -1,11 +1,12 @@
+import pathlib
 import re
 import shutil
 import tempfile
-from git import Repo
-import pathlib
-import aiohttp
+
 import aiofiles
+import aiohttp
 import requests
+from git import Repo
 
 
 class TempDir:
