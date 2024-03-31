@@ -49,8 +49,8 @@ async def get_releases(session, settings: datacls.ModSettings, repo: datacls.Rep
 def get_latest_commit_as_release(settings: datacls.ModSettings, repo: datacls.Repo):
     """
 
-    :param settings: datacls.ModSettings: 
-    :param repo: datacls.Repo: 
+    :param settings: datacls.ModSettings:
+    :param repo: datacls.Repo:
 
     """
     latest_commit = g_get_repo(settings.repo).get_commits()[0]
