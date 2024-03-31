@@ -34,7 +34,8 @@ logger.add(
 
 
 def get_from_release(main_address: str, settings: datacls.ModSettings, repo: datacls.Repo, release: datacls.Release) -> datacls.Mod:
-    if not release.is_prebuilt:            
+    if not release.is_prebuilt:
+        logger.info(f"[{settings.repo}] [{release.version}] Cloning repository...")
         with ClonedRepo(repo.git_url, ref=release.tag, no_delete=True) as clone:
             cur_dir = os.getcwd()
             os.chdir(clone.dir)
