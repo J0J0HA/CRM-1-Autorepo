@@ -42,7 +42,7 @@ class ClonedRepo(TempDir):
     def path(self, file) -> pathlib.Path:
         """
 
-        :param file: 
+        :param file:
 
         """
         return self.dir / file
@@ -50,9 +50,9 @@ class ClonedRepo(TempDir):
     def open(self, file, *args, **kwargs) -> open:
         """
 
-        :param file: 
-        :param *args: 
-        :param **kwargs: 
+        :param file:
+        :param *args:
+        :param **kwargs:
 
         """
         return open(self.path(file), *args, **kwargs)
@@ -77,7 +77,7 @@ class UnzippedJar(TempDir):
     def path(self, file) -> pathlib.Path:
         """
 
-        :param file: 
+        :param file:
 
         """
         return self.dir / file
@@ -85,9 +85,9 @@ class UnzippedJar(TempDir):
     def open(self, file, *args, **kwargs) -> open:
         """
 
-        :param file: 
-        :param *args: 
-        :param **kwargs: 
+        :param file:
+        :param *args:
+        :param **kwargs:
 
         """
         return open(self.path(file), *args, **kwargs)
@@ -121,8 +121,8 @@ async def download_jar(session: aiohttp.ClientSession, url, name="download.jar")
 def replace_vars(text, vars):
     """
 
-    :param text: 
-    :param vars: 
+    :param text:
+    :param vars:
 
     """
     for var in vars:
@@ -131,7 +131,7 @@ def replace_vars(text, vars):
     def replace(match):
         """
 
-        :param match: 
+        :param match:
 
         """
         if match.group(1) not in vars:
