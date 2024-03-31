@@ -1,19 +1,21 @@
 from datetime import datetime
-from .. import datacls
+
+import aiohttp
 import requests
 
+from .. import datacls
 
-def get_repo(settings: datacls.ModSettings) -> datacls.Repo:
+
+async def get_repo(session: aiohttp.ClientSession,
+                   settings: datacls.ModSettings) -> datacls.Repo:
     instance = (settings.instance or "https://codeberg.org").removesuffix("/")
-    resp = requests.get(f"{instance}/api/v1/repos/{settings.repo}", timeout=10)
-    repo_data = resp.json()
-    commits_resp = requests.get(
-        f"{instance}/api/v1/repos/{settings.repo}/commits", timeout=10
-    )
-    commits_data = commits_resp.json()
+    async with session.get(f"{instance}/api/v1/repos/{settings.repo}") as resp:
+        repo_data = await resp.json()
+    async with session.get(f"{instance}/api/v1/repos/{settings.repo}/commits",
+                           timeout=10) as commits_resp:
+        commits_data = await commits_resp.json()
     contributors = list(
-        set(commit["commit"]["author"]["name"] for commit in commits_data)
-    )
+        set(commit["commit"]["author"]["name"] for commit in commits_data))
     return datacls.Repo(
         name=repo_data["full_name"],
         git_url=repo_data["clone_url"],
@@ -25,34 +27,42 @@ def get_repo(settings: datacls.ModSettings) -> datacls.Repo:
     )
 
 
-def get_releases(settings: datacls.ModSettings, repo: datacls.Repo):
+async def get_releases(session: aiohttp.ClientSession,
+                       settings: datacls.ModSettings, repo: datacls.Repo):
     instance = (settings.instance or "https://codeberg.org").removesuffix("/")
-    resp = requests.get(f"{instance}/api/v1/repos/{repo.name}/releases", timeout=10)
-    releases_data = resp.json()
+    async with session.get(
+            f"{instance}/api/v1/repos/{repo.name}/releases") as resp:
+        releases_data = await resp.json()
     return [
         datacls.Release(
             tag=r["tag_name"],
             version=r["tag_name"].removeprefix("v").removeprefix("V"),
             title=r["name"],
             body=r["body"],
-            attached_files=[
-                (a["name"], a["browser_download_url"]) for a in r["assets"]
-            ],
+            attached_files=[(a["name"], a["browser_download_url"])
+                            for a in r["assets"]],
             by=r["author"]["login"],
-            published_at=datetime.strptime(
-                r["published_at"].replace(":", ""), "%Y-%m-%dT%H%M%S%z"
-            ).timestamp(),
+            published_at=datetime.strptime(r["published_at"].replace(":", ""),
+                                           "%Y-%m-%dT%H%M%S%z").timestamp(),
             prerelease=r["prerelease"],
             link=r["html_url"],
             is_prebuilt=True,
-        )
-        for r in releases_data
+        ) for r in releases_data
     ]
 
 
-def get_latest_commit_as_release(settings: datacls.ModSettings, repo: datacls.Repo):
+def get_latest_commit_as_release(settings: datacls.ModSettings,
+                                 repo: datacls.Repo):
+    """
+
+    :param settings: datacls.ModSettings:
+    :param repo: datacls.Repo:
+    :param settings: datacls.ModSettings:
+    :param repo: datacls.Repo:
+
+    """
     instance = (settings.instance or "https://codeberg.org").removesuffix("/")
-    resp = requests.get(f"{instance}/api/v1/repos/{repo.name}/commits", timeout=10)
+    resp = requests.get(f"{instance}/api/v1/repos/{repo.name}/commits")
     commits_data = resp.json()
     commit = commits_data[0]
     return datacls.Release(
@@ -62,9 +72,8 @@ def get_latest_commit_as_release(settings: datacls.ModSettings, repo: datacls.Re
         body=commit["commit"]["message"],
         attached_files=[],
         by=commit["commit"]["author"]["name"],
-        published_at=datetime.strptime(
-            commit["created"].replace(":", ""), "%Y-%m-%dT%H%M%S%z"
-        ).timestamp(),
+        published_at=datetime.strptime(commit["created"].replace(":", ""),
+                                       "%Y-%m-%dT%H%M%S%z").timestamp(),
         prerelease=True,
         link=commit["html_url"],
         is_prebuilt=False,

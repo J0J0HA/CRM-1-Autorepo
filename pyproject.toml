@@ -16,6 +16,9 @@ dataclasses-json = "^0.6.4"
 environs = "^11.0.0"
 gitpython = "^3.1.42"
 loguru = "^0.7.2"
+aiohttp = "^3.9.3"
+asyncio = "^3.4.3"
+aiofiles = "^23.2.1"
 
 
 [build-system]
