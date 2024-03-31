@@ -23,8 +23,7 @@ is_windows = platform.system() == "Windows"
 logger.remove()
 logger.add(
     sys.stderr,
-    format=
-    "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> <blue>|</blue> <lvl>{level:<7}</lvl> <blue>|</blue> <lvl>{message}</lvl>",
+    format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> <blue>|</blue> <lvl>{level:<7}</lvl> <blue>|</blue> <lvl>{message}</lvl>",
     level="SUCCESS",
     colorize=True,
 )
