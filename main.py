@@ -19,7 +19,7 @@ import hjson
 import platform
 
 
-is_windows = (platform.system() == "Windows")
+is_windows = platform.system() == "Windows"
 
 logger.remove()
 logger.add(
@@ -44,13 +44,12 @@ async def get_repo_jarpath(
     release: datacls.Release,
 ) -> Optional[str]:
     if not release.is_prebuilt:
-        logger.info(
-            f"[{settings.repo}] [{release.version}] Cloning repository...")
+        logger.info(f"[{settings.repo}] [{release.version}] Cloning repository...")
         with ClonedRepo(repo.git_url, ref=release.tag, no_delete=True) as clone:
-            logger.info(
-                f"[{settings.repo}] [{release.version}] Building jar...")
-            run = ("cmd", "/c", "gradle",
-                   "build") if is_windows else ("gradle", "build")
+            logger.info(f"[{settings.repo}] [{release.version}] Building jar...")
+            run = (
+                ("cmd", "/c", "gradle", "build") if is_windows else ("gradle", "build")
+            )
             proc = await asyncio.create_subprocess_exec(
                 *run,
                 stdout=asyncio.subprocess.DEVNULL,
@@ -80,8 +79,7 @@ async def get_repo_jarpath(
                 counter = 0
                 pause_new_path = new_path
                 while os.path.exists(new_path):
-                    new_path = pause_new_path.removesuffix(
-                        ".jar") + f"-{counter}.jar"
+                    new_path = pause_new_path.removesuffix(".jar") + f"-{counter}.jar"
                     counter += 1
                 os.rename(old_path, new_path)
                 release.attached_files.append(
@@ -109,8 +107,7 @@ async def get_repo_jarpath(
             jar_path = sorted_assets[0][1].removeprefix(
                 main_address.removesuffix("/") + "/"
             )
-            logger.success(
-                f"[{settings.repo}] [{release.version}] Build successful.")
+            logger.success(f"[{settings.repo}] [{release.version}] Build successful.")
     else:
         if not release.attached_files:
             logger.warning(
@@ -121,8 +118,7 @@ async def get_repo_jarpath(
             f"[{settings.repo}] [{release.version}] Downloading release build..."
         )
         sorted_assets = sorted(
-            [asset for asset in release.attached_files if asset[0].endswith(
-                ".jar")],
+            [asset for asset in release.attached_files if asset[0].endswith(".jar")],
             key=lambda f: len(f[0]),
         )
         try:
@@ -134,8 +130,7 @@ async def get_repo_jarpath(
                 f"[{settings.repo}] [{release.version}] Download timed out: {sorted_assets[0][1]}"
             )
             return
-        logger.success(
-            f"[{settings.repo}] [{release.version}] Download successful.")
+        logger.success(f"[{settings.repo}] [{release.version}] Download successful.")
     return jar_path
 
 
@@ -152,14 +147,12 @@ async def get_from_release(
             with jar.open("fabric.mod.json") as f:
                 json_content = f.read()
                 json_data = json.loads(json_content)
-            mod = parsers.parse_fabric_mod_json(
-                settings, repo, json_data, release)
+            mod = parsers.parse_fabric_mod_json(settings, repo, json_data, release)
         elif jar["quilt.mod.json"].exists():
             with jar.open("quilt.mod.json") as f:
                 json_content = f.read()
                 json_data = json.loads(json_content)
-            mod = parsers.parse_quilt_mod_json(
-                settings, repo, json_data, release)
+            mod = parsers.parse_quilt_mod_json(settings, repo, json_data, release)
         else:
             logger.warning(
                 f"[{settings.repo}] [{release.version}] Skipping because it doesn't have a parsable config file."
@@ -200,8 +193,7 @@ async def get_jars_from_releases(
     async with aiohttp.ClientSession() as session:
         tasks = [
             asyncio.create_task(
-                get_repo_jarpath(session, main_address,
-                                 settings, repo, release)
+                get_repo_jarpath(session, main_address, settings, repo, release)
             )
             for release in releases
         ]
@@ -217,8 +209,7 @@ async def get_meta_from_releases(
 
     return await asyncio.gather(
         *[
-            asyncio.create_task(get_from_release(
-                jar_path, settings, repo, release))
+            asyncio.create_task(get_from_release(jar_path, settings, repo, release))
             for release, jar_path in jarpaths
         ]
     )
@@ -289,8 +280,7 @@ async def generate_repo(session, setts):
     logger.info("Loading Mods...")
     mods = [
         asyncio.create_task(
-            get_mod(session, setts["address"],
-                    datacls.ModSettings.from_dict(mod))
+            get_mod(session, setts["address"], datacls.ModSettings.from_dict(mod))
         )
         for mod in setts["mods"]
     ]
@@ -345,12 +335,10 @@ def generate_repo_mapping(repos):
             continue
         repo_id = res["rootId"]
         if not repo_id:
-            logger.warning(
-                f"[{repo_address}] Skipping because rootId is empty.")
+            logger.warning(f"[{repo_address}] Skipping because rootId is empty.")
             continue
         if "mods" not in res:
-            logger.warning(
-                f"[{repo_id}] Skipping because it doesn't have mods.")
+            logger.warning(f"[{repo_id}] Skipping because it doesn't have mods.")
             continue
         repo_map[repo_id] = repo_address
         repo_results[repo_id] = res["mods"]

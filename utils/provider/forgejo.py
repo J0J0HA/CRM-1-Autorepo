@@ -5,7 +5,9 @@ from .. import datacls
 import requests
 
 
-async def get_repo(session: aiohttp.ClientSession, settings: datacls.ModSettings) -> datacls.Repo:
+async def get_repo(
+    session: aiohttp.ClientSession, settings: datacls.ModSettings
+) -> datacls.Repo:
     instance = (settings.instance or "https://codeberg.org").removesuffix("/")
     async with session.get(f"{instance}/api/v1/repos/{settings.repo}") as resp:
         repo_data = await resp.json()
@@ -27,7 +29,9 @@ async def get_repo(session: aiohttp.ClientSession, settings: datacls.ModSettings
     )
 
 
-async def get_releases(session: aiohttp.ClientSession, settings: datacls.ModSettings, repo: datacls.Repo):
+async def get_releases(
+    session: aiohttp.ClientSession, settings: datacls.ModSettings, repo: datacls.Repo
+):
     instance = (settings.instance or "https://codeberg.org").removesuffix("/")
     async with session.get(f"{instance}/api/v1/repos/{repo.name}/releases") as resp:
         releases_data = await resp.json()
