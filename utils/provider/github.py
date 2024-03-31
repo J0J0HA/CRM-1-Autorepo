@@ -1,15 +1,16 @@
-from github import Github, Auth
-from .. import datacls
-import environs
 from functools import lru_cache
 
+import environs
+from github import Auth
+from github import Github
+
+from .. import datacls
 
 env = environs.Env()
 env.read_env()
 
 auth = Auth.Token(env("GITHUB_TOKEN"))
 g = Github(auth=auth)
-
 
 g_get_repo = lru_cache(maxsize=128)(g.get_repo)
 
@@ -27,24 +28,32 @@ async def get_repo(session, settings: datacls.ModSettings) -> datacls.Repo:
     )
 
 
-async def get_releases(session, settings: datacls.ModSettings, repo: datacls.Repo):
+async def get_releases(session, settings: datacls.ModSettings,
+                       repo: datacls.Repo):
     return [
         datacls.Release(
             tag=r.tag_name,
             version=r.tag_name.removeprefix("v").removeprefix("V"),
             title=r.title,
             body=r.body,
-            attached_files=[(a.name, a.browser_download_url) for a in r.get_assets()],
+            attached_files=[(a.name, a.browser_download_url)
+                            for a in r.get_assets()],
             by=r.author.login,
             published_at=r.published_at.timestamp(),
             prerelease=r.prerelease,
             link=r.html_url,
-        )
-        for r in g_get_repo(settings.repo).get_releases()
+        ) for r in g_get_repo(settings.repo).get_releases()
     ]
 
 
-def get_latest_commit_as_release(settings: datacls.ModSettings, repo: datacls.Repo):
+def get_latest_commit_as_release(settings: datacls.ModSettings,
+                                 repo: datacls.Repo):
+    """
+
+    :param settings: datacls.ModSettings:
+    :param repo: datacls.Repo:
+
+    """
     latest_commit = g_get_repo(settings.repo).get_commits()[0]
     return datacls.Release(
         tag=latest_commit.sha,
