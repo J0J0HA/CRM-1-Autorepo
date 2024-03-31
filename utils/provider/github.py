@@ -1,7 +1,8 @@
 from functools import lru_cache
 
 import environs
-from github import Auth, Github
+from github import Auth
+from github import Github
 
 from .. import datacls
 
