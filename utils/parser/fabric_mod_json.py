@@ -4,17 +4,14 @@ from ..data import Mod, Release, ModSettings, ModExt, Dependency, Repo
 def parse_fabric_mod_json(
     settings: ModSettings, repo: Repo, data: dict, release: Release
 ) -> Mod:
-    dependencies = {
-        name: version
-        for name, version in data.get("depends", {}).items()
-    }
+    dependencies = {name: version for name, version in data.get("depends", {}).items()}
     files = sorted(release.attached_files, key=lambda f: len(f[0]))
     return Mod(
         id=settings.id or data.get("id"),
         name=data.get("name") or settings.repo.rsplit("/", 1)[-1],
         desc=data.get("description") or "",
         authors=data.get("authors") or repo.authors or repo.owner,
-        version=data.get("version") or release.tag.removeprefix("v").removeprefix("V"),
+        version=data.get("version"),
         game_version=dependencies.get("cosmic_reach"),
         url=files[-1][1] if files else release.link,
         deps=[
@@ -33,6 +30,7 @@ def parse_fabric_mod_json(
             changelog=release.link,
             alt_download=files,
             alt_versions=[],
-            published_at=release.published_at
+            published_at=release.published_at,
+            prerelease=release.prerelease,
         ),
     )

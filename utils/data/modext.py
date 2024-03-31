@@ -20,3 +20,4 @@ class ModExt:
     alt_download: Optional[str] = None
     alt_versions: list["Mod"] = field(default_factory=list)
     suggests: Optional[dict[str, str]] = None
+    prerelease: Optional[bool] = None

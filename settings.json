@@ -11,10 +11,6 @@
             "id": "com.github.repletsin5.lunar-api"
         },
         {
-            "provider": "codeberg",
-            "repo": "CRModders/cosmic-quilt-example-kotlin"
-        },
-        {
             "provider": "github",
             "repo": "NikRasOff/CosmicReach-Seamless-Portals",
             "id": "com.nikrasoff.seamlessportals"
@@ -42,6 +38,7 @@
         }
     ],
     "rootId": "de.jojojux.crm-repo",
+    "address": "https://crm-repo.jojojux.de/",
     "notes": {
         "disclaimer": "The content of this repo-file is generated automatically from data provided by third-party sources. It is not guaranteed to be accurate or up-to-date. Please report any instances of unappriopriate content or malicious files, the causing repositories will be removed from the list.",
         "icons-invalid": "Currently, relative paths are not supported for icons. This results in the ext.icon field of mods being mostly useless. This will be fixed in a future update.",
