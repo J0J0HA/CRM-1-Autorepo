@@ -27,6 +27,12 @@ jobs:
       with:
         python-version: "3.11"
         cache: "poetry"
+    - name: Setup Java JDK
+      uses: actions/setup-java@v4.2.1
+      with:
+        java-version: 17
+        distribution: oracle
+        java-package: jdk
     - name: Install dependencies
       run: poetry install
     - name: Generate repo
