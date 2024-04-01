@@ -353,10 +353,6 @@ def generate_repo_mapping(repos):
     }
 
     for repo_id, repo_mods in repo_results.items():
-        for mod in repo_mods:
-            print(repo_id, mod["id"])
-
-    for repo_id, repo_mods in repo_results.items():
         logger.info(f"[{repo_id}] Processing mods...")
         for mod in repo_mods:
             if "id" not in mod:
