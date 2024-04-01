@@ -1,9 +1,12 @@
-from ..data import Mod, Release, ModSettings, ModExt, Dependency, Repo
+from crm1.helpers.versions import range_from_maven_string
+from crm1.spec import RDependency, RMod, UnsafeModExt
+
+from ..data import ModSettings, Release, Repo
 
 
 def parse_quilt_mod_json(
     settings: ModSettings, repo: Repo, data: dict, release: Release
-) -> Mod:
+) -> RMod:
     loader_data = data.get("quilt_loader", {})
     dependencies = {
         item["id"]: item["versions"] for item in loader_data.get("depends", [])
@@ -17,28 +20,49 @@ def parse_quilt_mod_json(
         if loader_data.get("group") is not None
         else "io.github." + repo.owner + "." + loader_data.get("id")
     )
-    return Mod(
+    return RMod(
         id=settings.id or id_,
         name=metadata.get("name") or settings.repo.rsplit("/", 1)[-1],
         desc=metadata.get("description") or "",
         authors=metadata.get("contributors", {}).keys() or repo.authors or repo.owner,
         version=loader_data.get("version"),
-        game_version=dependencies.get("cosmicreach") or dependencies.get("cosmic_reach"),
+        game_version=(
+            range_from_maven_string(
+                dependencies.get("cosmicreach") or dependencies.get("cosmic_reach")
+            ).to_string()
+            if (dependencies.get("cosmicreach") or dependencies.get("cosmic_reach"))
+            is not None
+            else None
+        ),
         url=release.attached_files[-1][1] if release.attached_files else release.link,
         deps=[
-            Dependency(name, version, None)
+            RDependency(
+                name,
+                (
+                    range_from_maven_string(version).to_string()
+                    if version is not None
+                    else None
+                ),
+                None,
+            )
             for name, version in dependencies.items()
             if name != "cosmicquilt"
             and name != "cosmicreach"
             and name != "cosmic_quilt"
             and name != "cosmic_reach"
         ],
-        ext=ModExt(
+        ext=UnsafeModExt(
             modid=loader_data.get("id"),
             icon=metadata.get("icon"),
             loader="quilt",
-            loader_version=dependencies.get("cosmicquilt")
-            or dependencies.get("cosmic_quilt"),
+            loader_version=(
+                range_from_maven_string(
+                    dependencies.get("cosmicquilt") or dependencies.get("cosmic_quilt")
+                ).to_string()
+                if (dependencies.get("cosmicquilt") or dependencies.get("cosmic_quilt"))
+                is not None
+                else None
+            ),
             source=repo.html_url,
             issues=repo.issue_url,
             owner=repo.owner,
@@ -46,7 +70,18 @@ def parse_quilt_mod_json(
             alt_download=release.attached_files,
             alt_versions=[],
             published_at=release.published_at,
-            suggests=suggests,
+            suggests=[
+                RDependency(
+                    name,
+                    (
+                        range_from_maven_string(version).to_string()
+                        if version is not None
+                        else None
+                    ),
+                    None,
+                )
+                for name, version in suggests.items()
+            ],
             prerelease=release.prerelease,
         ),
     )
