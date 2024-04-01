@@ -23,12 +23,13 @@ def parse_quilt_mod_json(
         desc=metadata.get("description") or "",
         authors=metadata.get("contributors", {}).keys() or repo.authors or repo.owner,
         version=loader_data.get("version"),
-        game_version=dependencies.get("cosmic_reach"),
+        game_version=dependencies.get("cosmicreach") or dependencies.get("cosmic_reach"),
         url=release.attached_files[-1][1] if release.attached_files else release.link,
         deps=[
             Dependency(name, version, None)
             for name, version in dependencies.items()
             if name != "cosmicquilt"
+            and name != "cosmicreach"
             and name != "cosmic_quilt"
             and name != "cosmic_reach"
         ],
