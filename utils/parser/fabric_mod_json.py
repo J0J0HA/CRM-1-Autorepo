@@ -1,5 +1,5 @@
 from crm1.helpers.versions import range_from_maven_string
-from crm1.spec import RDependency, RMod, UnsafeModExt
+from crm1.spec import CommonModExt, RDependency, RMod
 
 from ..data import ModSettings, Release, Repo
 
@@ -37,7 +37,7 @@ def parse_fabric_mod_json(
             for name, version in dependencies.items()
             if name != "fabricloader" and name != "cosmic_reach"
         ],
-        ext=UnsafeModExt(
+        ext=CommonModExt(
             modid=data.get("id"),
             icon=data.get("icon"),
             loader="fabric",

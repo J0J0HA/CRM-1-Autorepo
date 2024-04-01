@@ -18,7 +18,7 @@ gitpython = "^3.1.42"
 loguru = "^0.7.2"
 aiohttp = "^3.9.3"
 asyncio = "^3.4.3"
-crm1 = "^0.0.6"
+crm1 = "^0.0.8"
 
 
 [build-system]

@@ -1,5 +1,5 @@
 from crm1.helpers.versions import range_from_maven_string
-from crm1.spec import RDependency, RMod, UnsafeModExt
+from crm1.spec import CommonModExt, RDependency, RMod
 
 from ..data import ModSettings, Release, Repo
 
@@ -51,7 +51,7 @@ def parse_quilt_mod_json(
             and name != "cosmic_quilt"
             and name != "cosmic_reach"
         ],
-        ext=UnsafeModExt(
+        ext=CommonModExt(
             modid=loader_data.get("id"),
             icon=metadata.get("icon"),
             loader="quilt",

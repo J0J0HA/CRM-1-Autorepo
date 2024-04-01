@@ -328,13 +328,13 @@ files = [
 
 [[package]]
 name = "crm1"
-version = "0.0.6"
+version = "0.0.8"
 description = "A CRM-1 repository exploration package"
 optional = false
-python-versions = "<4.0,>=3.11"
+python-versions = "<4.0,>=3.10"
 files = [
-    {file = "crm1-0.0.6-py3-none-any.whl", hash = "sha256:9d63cb493aadcce6795e4c66edcf40b24d29f0bd995e47f47a830bacbbfcebf5"},
-    {file = "crm1-0.0.6.tar.gz", hash = "sha256:ab4805a91361fa6f29b140df159ccf13292562145486013a9c8b54394431a58e"},
+    {file = "crm1-0.0.8-py3-none-any.whl", hash = "sha256:8dad279ea88771b653c51917d2d12ddeeabcba15c9a0d30866b94dfb9b3e7262"},
+    {file = "crm1-0.0.8.tar.gz", hash = "sha256:17a29e89bfb6113aefb9080a0114e89a790595dd64bb56233b99cd1d9f721c0a"},
 ]
 
 [package.dependencies]
@@ -1110,4 +1110,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "15ac7832a8b5b8bed6ff6d7471a9c6981b4f2a57afa114f6b5bbf8c3ddbbef38"
+content-hash = "7e17abda13694bc22c29226b1a3212e836e76af22619abd2a6346f6028b06d9f"
