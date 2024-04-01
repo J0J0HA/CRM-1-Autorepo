@@ -7,6 +7,11 @@
             "devBuilds": true
         },
         {
+            "provider": "codeberg",
+            "repo": "CRModders/modmenu",
+            "devBuilds": true
+        },
+        {
             "provider": "github",
             "repo": "repletsin5/lunar-api",
             "id": "com.github.repletsin5.lunar-api",
