@@ -20,7 +20,7 @@ This is a CRM-1 repo updating its contents automatically from GitHub.
 
 ## Config- and Output-Files
 
-Read more in the [Wiki](/wiki).
+Read more in the [Wiki](https://github.com/J0J0HA/CRM-1-Autorepo/wiki).
 
 ## License
 
