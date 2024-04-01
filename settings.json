@@ -49,7 +49,8 @@
     "notes": {
         "disclaimer": "The content of this repo-file is generated automatically from data provided by third-party sources. It is not guaranteed to be accurate or up-to-date. Please report any instances of unappriopriate content or malicious files, the causing repositories will be removed from the list.",
         "icons-invalid": "Currently, relative paths are not supported for icons. This results in the ext.icon field of mods being mostly useless. This will be fixed in a future update.",
-        "depends": "The depends filed may contain invalid values, as it's generation is not yet finished. This will be fixed in a future update."
+        "depends": "The depends filed may contain invalid values, as it's generation is not yet finished. This will be fixed in a future update.",
+        "thisOnGithub": "https://github.com/J0J0HA/CRM-1-Autorepo"
     },
     "repos": [
         "https://repo.crmodders.dev/repository.hjson",
