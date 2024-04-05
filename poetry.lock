@@ -328,17 +328,17 @@ files = [
 
 [[package]]
 name = "crm1"
-version = "0.0.8"
+version = "0.0.10"
 description = "A CRM-1 repository exploration package"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "crm1-0.0.8-py3-none-any.whl", hash = "sha256:8dad279ea88771b653c51917d2d12ddeeabcba15c9a0d30866b94dfb9b3e7262"},
-    {file = "crm1-0.0.8.tar.gz", hash = "sha256:17a29e89bfb6113aefb9080a0114e89a790595dd64bb56233b99cd1d9f721c0a"},
+    {file = "crm1-0.0.10-py3-none-any.whl", hash = "sha256:8fd2437e3cc5ef2c81fa374e0f47406f9d82b8844e6bf08200ac28c69fadc664"},
+    {file = "crm1-0.0.10.tar.gz", hash = "sha256:89de7ad7c5d663fab7922636fc5be396ce37e1ce2b8a6e2d8258d3e04ce6742a"},
 ]
 
 [package.dependencies]
-dataclasses-json = ">=0.6.4,<0.7.0"
+dataclasses-hjson = ">=0.0.3,<0.0.4"
 hjson = ">=3.1.0,<4.0.0"
 requests = ">=2.31.0,<3.0.0"
 
@@ -395,6 +395,20 @@ sdist = ["build"]
 ssh = ["bcrypt (>=3.1.5)"]
 test = ["certifi", "pretend", "pytest (>=6.2.0)", "pytest-benchmark", "pytest-cov", "pytest-xdist"]
 test-randomorder = ["pytest-randomly"]
+
+[[package]]
+name = "dataclasses-hjson"
+version = "0.0.3"
+description = "A simple mixin that adds .to_hjson and .from_hjson to the dataclasses-json mixin"
+optional = false
+python-versions = "<4.0,>=3.7"
+files = [
+    {file = "dataclasses_hjson-0.0.3-py3-none-any.whl", hash = "sha256:d41920c324ad87f4f9fc3ed5e84189501261c24546b61b92f8297126e99ab885"},
+    {file = "dataclasses_hjson-0.0.3.tar.gz", hash = "sha256:77f041d4e37bd1c111593304c77a5381d1805a128d6d3743a517e80322a877f7"},
+]
+
+[package.dependencies]
+dataclasses-json = ">=0.6.4,<0.7.0"
 
 [[package]]
 name = "dataclasses-json"
@@ -1110,4 +1124,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "7e17abda13694bc22c29226b1a3212e836e76af22619abd2a6346f6028b06d9f"
+content-hash = "235299e8542202de77b45eba4095b086f69cac85f46ce1cec54b77b22fcf1f62"
