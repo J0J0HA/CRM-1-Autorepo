@@ -1,21 +1,20 @@
-import asyncio
 import json
 import os
 import platform
+import shutil
+import subprocess
 import sys
 import time
 from typing import Optional
 
-import aiohttp
 import hjson
 import requests
+from crm1.spec import RMod
 from loguru import logger
 
 from utils import ClonedRepo, UnzippedJar, datacls, download_jar
 from utils import parser as parsers
 from utils import provider as providers
-
-from crm1.spec import RMod
 
 is_windows = platform.system() == "Windows"
 
@@ -34,8 +33,7 @@ logger.add(
 )
 
 
-async def get_repo_jarpath(
-    session: aiohttp.ClientSession,
+def get_repo_jarpath(
     main_address: str,
     settings: datacls.ModSettings,
     repo: datacls.Repo,
@@ -43,23 +41,23 @@ async def get_repo_jarpath(
 ) -> Optional[str]:
     if not release.is_prebuilt:
         logger.info(f"[{settings.repo}] [{release.version}] Cloning repository...")
-        with ClonedRepo(repo.git_url, ref=release.tag, no_delete=True) as clone:
+        with ClonedRepo(
+            repo.git_url,
+            ref=release.tag,
+            sub=(repo.owner, repo.name.rsplit("/")[-1], release.version, "build"),
+        ) as clone:
             logger.info(f"[{settings.repo}] [{release.version}] Building jar...")
             run = (
                 ("cmd", "/c", "gradle", "build") if is_windows else ("gradle", "build")
             )
-            proc = await asyncio.create_subprocess_exec(
-                *run,
-                stdout=asyncio.subprocess.DEVNULL,
-                stderr=asyncio.subprocess.DEVNULL,
-                cwd=clone.dir,
+            proc = subprocess.Popen(
+                run, cwd=clone.dir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
             )
-            ret_val = await proc.wait()
+            proc.wait()
+            ret_val = proc.returncode
             if ret_val != 0:
-                logger.debug(proc.stdout.read().decode())
-                logger.debug(proc.stderr.read().decode())
                 logger.warning(
-                    f"[{settings.repo}] [{release.version}] Skipping because build failed. (Invalid return value)"
+                    f"[{settings.repo}] [{release.version}] Skipping because build failed. (Invalid return value {ret_val})"
                 )
                 return
             if not clone.path("build/libs").exists():
@@ -80,7 +78,7 @@ async def get_repo_jarpath(
                 while os.path.exists(new_path):
                     new_path = pause_new_path.removesuffix(".jar") + f"-{counter}.jar"
                     counter += 1
-                os.rename(old_path, new_path)
+                shutil.copy(old_path, new_path)
                 assets.append(
                     (
                         file.name,
@@ -99,9 +97,7 @@ async def get_repo_jarpath(
                     f"[{settings.repo}] [{release.version}] Skipping, Build seems to have failed."
                 )
                 return
-            jar_path = release.attached_files[-1][1].removeprefix(
-                main_address.removesuffix("/") + "/"
-            )
+            jar_path = os.path.join(clone.path("build/libs"), release.attached_files[-1][0])
             logger.success(f"[{settings.repo}] [{release.version}] Build successful.")
     else:
         if not release.attached_files:
@@ -118,8 +114,10 @@ async def get_repo_jarpath(
             reverse=True,
         )
         try:
-            jar_path = await download_jar(
-                session, release.attached_files[-1][1], release.attached_files[-1][0]
+            jar_path = download_jar(
+                release.attached_files[-1][1],
+                release.attached_files[-1][0],
+                sub=(repo.owner, repo.name.rsplit("/")[-1], release.version, "download"),
             )
         except TimeoutError:
             logger.error(
@@ -130,22 +128,25 @@ async def get_repo_jarpath(
     return jar_path
 
 
-async def get_from_release(
+def get_from_release(
     jar_path: str,
     settings: datacls.ModSettings,
     repo: datacls.Repo,
     release: datacls.Release,
 ) -> Optional[RMod]:
     logger.info(f"[{settings.repo}] [{release.version}] Reading jar...")
-    with UnzippedJar(jar_path, True) as jar:
+    with UnzippedJar(
+        jar_path,
+        sub=(repo.owner, repo.name.rsplit("/")[-1], release.version, "unzipped"),
+    ) as jar:
         mod: Optional[RMod] = None
         if jar["fabric.mod.json"].exists():
-            with jar.open("fabric.mod.json") as f:
+            with jar.open("fabric.mod.json", "r", encoding="utf-8") as f:
                 json_content = f.read()
                 json_data = json.loads(json_content)
             mod = parsers.parse_fabric_mod_json(settings, repo, json_data, release)
         elif jar["quilt.mod.json"].exists():
-            with jar.open("quilt.mod.json") as f:
+            with jar.open("quilt.mod.json", "r", encoding="utf-8") as f:
                 json_content = f.read()
                 json_data = json.loads(json_content)
             mod = parsers.parse_quilt_mod_json(settings, repo, json_data, release)
@@ -173,40 +174,38 @@ async def get_from_release(
     return mod
 
 
-async def get_jars_from_releases(
+def get_jars_from_releases(
     main_address: str,
     settings: datacls.ModSettings,
     repo: datacls.Repo,
     releases: list[datacls.Release],
 ) -> list[tuple[datacls.Release, str]]:
-    async with aiohttp.ClientSession() as session:
-        tasks = [
-            asyncio.create_task(
-                get_repo_jarpath(session, main_address, settings, repo, release)
-            )
-            for release in releases
-        ]
-        results = await asyncio.gather(*tasks)
-        return [(release, result) for release, result in zip(releases, results)]
+    return [
+        (release, result)
+        for release, result in zip(
+            releases,
+            [
+                get_repo_jarpath(main_address, settings, repo, release)
+                for release in releases
+            ],
+        )
+    ]
 
 
-async def get_meta_from_releases(
+def get_meta_from_releases(
     jarpaths: list[tuple[datacls.Release, str]],
     settings: datacls.ModSettings,
     repo: datacls.Repo,
 ) -> list[RMod]:
 
-    return await asyncio.gather(
-        *[
-            asyncio.create_task(get_from_release(jar_path, settings, repo, release))
-            for release, jar_path in jarpaths
-        ]
-    )
+    return [
+        get_from_release(jar_path, settings, repo, release)
+        for release, jar_path in jarpaths
+        if jar_path is not None
+    ]
 
 
-def filter_versions(
-    versions: list[RMod], settings: datacls.ModSettings
-) -> list[RMod]:
+def filter_versions(versions: list[RMod], settings: datacls.ModSettings) -> list[RMod]:
     """
 
     :param versions: list[RMod]:
@@ -237,14 +236,12 @@ def filter_versions(
     return versions_sorted
 
 
-async def get_mod(
-    session, main_address: str, settings: datacls.ModSettings
-) -> RMod:
+def get_mod(main_address: str, settings: datacls.ModSettings) -> RMod:
     logger.info(f"[{settings.repo}] Loading Metadata...")
     provider = providers.map[settings.provider]
 
-    repo = await provider.get_repo(session, settings)
-    releases = await provider.get_releases(session, settings, repo)
+    repo = provider.get_repo(settings)
+    releases = provider.get_releases(settings, repo)
     logger.success(f"[{settings.repo}] Metadata loaded.")
     if settings.dev_builds == True:
         releases.append(provider.get_latest_commit_as_release(settings, repo))
@@ -253,8 +250,8 @@ async def get_mod(
             f"[{settings.repo}] Skipping because it doesn't have any releases."
         )
         return None
-    jarpaths = await get_jars_from_releases(main_address, settings, repo, releases)
-    versions_unfiltered = await get_meta_from_releases(jarpaths, settings, repo)
+    jarpaths = get_jars_from_releases(main_address, settings, repo, releases)
+    versions_unfiltered = get_meta_from_releases(jarpaths, settings, repo)
     filtered_versions = filter_versions(versions_unfiltered, settings)
 
     versions = list(filtered_versions)
@@ -273,16 +270,16 @@ async def get_mod(
     return mod
 
 
-async def generate_repo(session, setts):
+def generate_repo(setts):
     logger.info("Loading Mods...")
     mods = [
-        asyncio.create_task(
-            get_mod(session, setts["address"], datacls.ModSettings.from_dict(mod))
-        )
-        for mod in setts["mods"]
+        mod
+        for mod in [
+            get_mod(setts["address"], datacls.ModSettings.from_dict(mod))
+            for mod in setts["mods"]
+        ]
+        if mod
     ]
-    mods = await asyncio.gather(*mods)
-    mods = [mod for mod in mods if mod]
 
     logger.info("Generating output content...")
     file_content = {
@@ -391,19 +388,15 @@ def generate_repo_mapping(repos):
     logger.success("Generated repo mapping.")
 
 
-async def main():
+def main():
     start = time.time()
     logger.info("Reading config...")
     with open("settings.json", "r", encoding="utf-8") as f:
         setts = json.load(f)
-    async with aiohttp.ClientSession(
-        connector=aiohttp.TCPConnector(limit=10),
-        timeout=aiohttp.ClientTimeout(total=60),
-    ) as session:
-        await generate_repo(session, setts)
+    generate_repo(setts)
     generate_repo_mapping(setts["repos"])
     logger.success(f"Finished. Took {time.time() - start:.2f}s.")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

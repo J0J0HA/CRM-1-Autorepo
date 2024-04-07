@@ -12,6 +12,16 @@
             "devBuilds": true
         },
         {
+            "provider": "codeberg",
+            "repo": "EmmaTheMartian/Cosmicomputers",
+            "devBuilds": true
+        },
+        {
+            "provider": "codeberg",
+            "repo": "CRModders/simple-zoom",
+            "devBuilds": true
+        },
+        {
             "provider": "github",
             "repo": "repletsin5/lunar-api",
             "id": "com.github.repletsin5.lunar-api",

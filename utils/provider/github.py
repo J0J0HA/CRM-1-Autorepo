@@ -14,7 +14,7 @@ g = Github(auth=auth)
 g_get_repo = lru_cache(maxsize=128)(g.get_repo)
 
 
-async def get_repo(session, settings: datacls.ModSettings) -> datacls.Repo:
+def get_repo(settings: datacls.ModSettings) -> datacls.Repo:
     repo = g_get_repo(settings.repo)
     return datacls.Repo(
         name=repo.full_name,
@@ -27,7 +27,7 @@ async def get_repo(session, settings: datacls.ModSettings) -> datacls.Repo:
     )
 
 
-async def get_releases(session, settings: datacls.ModSettings, repo: datacls.Repo):
+def get_releases(settings: datacls.ModSettings, repo: datacls.Repo):
     return [
         datacls.Release(
             tag=r.tag_name,
