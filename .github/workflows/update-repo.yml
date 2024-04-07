@@ -39,7 +39,7 @@ jobs:
       uses: actions/cache@v4.0.2
       with:
         path: .cache
-        key: autorepo-cache-${{ hashFiles('.cache/**') }}
+        key: autorepo-cache
         enableCrossOsArchive: true
         fail-on-cache-miss: false
         save-always: false
