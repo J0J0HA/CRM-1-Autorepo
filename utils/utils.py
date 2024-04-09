@@ -19,7 +19,7 @@ class TempDirProvider:
         os.makedirs(path, exist_ok=True)
         # return tempfile.mkdtemp(dir=path)
         return pathlib.Path(path)
-    
+
     def get_path_nc(self, *sub):
         return os.path.join(self.parent, *sub)
 
@@ -28,7 +28,7 @@ class TempDirProvider:
 
     def delete(self):
         # shutil.rmtree(self.parent, ignore_errors=True)
-        pass # Don't delete the parent directory
+        pass  # Don't delete the parent directory
 
     def __del__(self):
         self.delete()
@@ -46,7 +46,7 @@ class TempDir:
         else:
             path = TMP_DIRS.get_path_nc(*sub)
         self.dir = pathlib.Path(path).absolute()
-        
+
     def create(self):
         os.makedirs(self.dir, exist_ok=True)
 
@@ -75,6 +75,7 @@ class ClonedRepo(TempDir):
                 raise e
         else:
             self.repo = Repo(self.dir)
+            self.repo.remotes.origin.fetch()
         self.html_url = html_url or git_url.removesuffix(".git")
 
         if ref:
