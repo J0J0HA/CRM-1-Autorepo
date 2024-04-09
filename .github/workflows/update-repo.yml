@@ -35,6 +35,14 @@ jobs:
         java-package: jdk
     - name: Install dependencies
       run: poetry install
+    - name: Cache
+      uses: actions/cache@v4.0.2
+      with:
+        path: .cache
+        key: autorepo-cache
+        enableCrossOsArchive: true
+        fail-on-cache-miss: false
+        save-always: false
     - name: Generate repo
       run: |
         echo "GITHUB_TOKEN = ${{ github.token }}" >> ".env"
