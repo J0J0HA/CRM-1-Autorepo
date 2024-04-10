@@ -34,11 +34,19 @@ logger.add(
 
 
 def get_repo_jarpath(
+    suffix_priority: list[str],
     main_address: str,
     settings: datacls.ModSettings,
     repo: datacls.Repo,
     release: datacls.Release,
 ) -> Optional[str]:
+
+    def get_prio(name: str):
+        for prio, end in suffix_priority:
+            if name.endswith(end):
+                return prio
+        return len(suffix_priority)
+
     if not release.is_prebuilt:
         logger.info(f"[{settings.repo}] [{release.version}] Cloning repository...")
         with ClonedRepo(
@@ -89,15 +97,16 @@ def get_repo_jarpath(
                 )
             release.attached_files = sorted(
                 [asset for asset in assets if asset[0].endswith(".jar")],
-                key=lambda f: len(f[0]),
-                reverse=True,
+                key=lambda f: (get_prio(f[0]), len(f[0])),
             )
             if not release.attached_files:
                 logger.warning(
                     f"[{settings.repo}] [{release.version}] Skipping, Build seems to have failed."
                 )
                 return
-            jar_path = os.path.join(clone.path("build/libs"), release.attached_files[-1][0])
+            jar_path = os.path.join(
+                clone.path("build/libs"), release.attached_files[0][0]
+            )
             logger.success(f"[{settings.repo}] [{release.version}] Build successful.")
     else:
         if not release.attached_files:
@@ -111,17 +120,21 @@ def get_repo_jarpath(
         release.attached_files = sorted(
             [asset for asset in release.attached_files if asset[0].endswith(".jar")],
             key=lambda f: len(f[0]),
-            reverse=True,
         )
         try:
             jar_path = download_jar(
-                release.attached_files[-1][1],
-                release.attached_files[-1][0],
-                sub=(repo.owner, repo.name.rsplit("/")[-1], release.version, "download"),
+                release.attached_files[0][1],
+                release.attached_files[0][0],
+                sub=(
+                    repo.owner,
+                    repo.name.rsplit("/")[-1],
+                    release.version,
+                    "download",
+                ),
             )
         except TimeoutError:
             logger.error(
-                f"[{settings.repo}] [{release.version}] Download timed out: {release.attached_files[-1][1]}"
+                f"[{settings.repo}] [{release.version}] Download timed out: {release.attached_files[0][1]}"
             )
             return
         logger.info(f"[{settings.repo}] [{release.version}] Download successful.")
@@ -175,6 +188,7 @@ def get_from_release(
 
 
 def get_jars_from_releases(
+    suffix_priority: list[str],
     main_address: str,
     settings: datacls.ModSettings,
     repo: datacls.Repo,
@@ -185,7 +199,7 @@ def get_jars_from_releases(
         for release, result in zip(
             releases,
             [
-                get_repo_jarpath(main_address, settings, repo, release)
+                get_repo_jarpath(suffix_priority, main_address, settings, repo, release)
                 for release in releases
             ],
         )
@@ -236,7 +250,9 @@ def filter_versions(versions: list[RMod], settings: datacls.ModSettings) -> list
     return versions_sorted
 
 
-def get_mod(main_address: str, settings: datacls.ModSettings) -> RMod:
+def get_mod(
+    suffix_priority: list[str], main_address: str, settings: datacls.ModSettings
+) -> RMod:
     logger.info(f"[{settings.repo}] Loading Metadata...")
     provider = providers.map[settings.provider]
 
@@ -250,7 +266,9 @@ def get_mod(main_address: str, settings: datacls.ModSettings) -> RMod:
             f"[{settings.repo}] Skipping because it doesn't have any releases."
         )
         return None
-    jarpaths = get_jars_from_releases(main_address, settings, repo, releases)
+    jarpaths = get_jars_from_releases(
+        suffix_priority, main_address, settings, repo, releases
+    )
     versions_unfiltered = get_meta_from_releases(jarpaths, settings, repo)
     filtered_versions = filter_versions(versions_unfiltered, settings)
 
@@ -275,7 +293,15 @@ def generate_repo(setts):
     mods = [
         mod
         for mod in [
-            get_mod(setts["address"], datacls.ModSettings.from_dict(mod))
+            get_mod(
+                sorted(
+                    enumerate(setts["suffixPrios"]),
+                    key=lambda x: len(x[1]),
+                    reverse=True,
+                ),
+                setts["address"],
+                datacls.ModSettings.from_dict(mod),
+            )
             for mod in setts["mods"]
         ]
         if mod

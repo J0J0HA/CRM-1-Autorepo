@@ -75,5 +75,10 @@
     "repos": [
         "https://repo.crmodders.dev/repository.hjson",
         "https://crm-repo.jojojux.de/repo.json"
+    ],
+    "suffixPrios": [
+        "-all.jar",
+        ".jar",
+        "-sources.jar"
     ]
 }
