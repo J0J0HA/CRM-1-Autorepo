@@ -13,6 +13,11 @@
         },
         {
             "provider": "codeberg",
+            "repo": "EmmaTheMartian/cosmic-graal",
+            "devBuilds": true
+        },
+        {
+            "provider": "codeberg",
             "repo": "EmmaTheMartian/Cosmicomputers",
             "devBuilds": true
         },
