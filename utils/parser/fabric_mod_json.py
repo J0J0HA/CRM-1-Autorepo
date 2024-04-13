@@ -1,13 +1,21 @@
+import os
+import pathlib
 from crm1.helpers.versions import range_from_maven_string
-from crm1.spec import CommonModExt, RDependency, RMod
+from crm1.spec.v2 import CommonModExt, RDependency, RMod
 
 from ..data import ModSettings, Release, Repo
 
 
 def parse_fabric_mod_json(
-    settings: ModSettings, repo: Repo, data: dict, release: Release
+    base_address: str,
+    settings: ModSettings,
+    repo: Repo,
+    data: dict,
+    jardir: pathlib.Path,
+    release: Release,
 ) -> RMod:
     dependencies = {name: version for name, version in data.get("depends", {}).items()}
+    icon_path = (base_address + (jardir.relative_to(os.getcwd()) / data.get("icon")).as_posix()) if data.get("icon") else None
     return RMod(
         id=settings.id or data.get("id"),
         name=data.get("name") or settings.repo.rsplit("/", 1)[-1],
@@ -39,7 +47,7 @@ def parse_fabric_mod_json(
         ],
         ext=CommonModExt(
             modid=data.get("id"),
-            icon=data.get("icon"),
+            icon=icon_path,
             loader="fabric",
             loader_version=(
                 range_from_maven_string(dependencies.get("fabricloader")).to_string()

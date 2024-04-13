@@ -9,7 +9,7 @@ from typing import Optional
 
 import hjson
 import requests
-from crm1.spec import RMod
+from crm1.spec.v2 import RMod
 from loguru import logger
 
 from utils import ClonedRepo, UnzippedJar, datacls, download_jar
@@ -97,7 +97,7 @@ def get_repo_jarpath(
                 )
             release.attached_files = sorted(
                 [asset for asset in assets if asset[0].endswith(".jar")],
-                key=lambda f: (get_prio(f[0]), len(f[0])),
+                key=lambda f: (get_prio(f[0]), f[0]),
             )
             if not release.attached_files:
                 logger.warning(
@@ -119,7 +119,7 @@ def get_repo_jarpath(
         )
         release.attached_files = sorted(
             [asset for asset in release.attached_files if asset[0].endswith(".jar")],
-            key=lambda f: len(f[0]),
+            key=lambda f: (get_prio(f[0]), f[0]),
         )
         try:
             jar_path = download_jar(
@@ -142,6 +142,7 @@ def get_repo_jarpath(
 
 
 def get_from_release(
+    base_address: str,
     jar_path: str,
     settings: datacls.ModSettings,
     repo: datacls.Repo,
@@ -157,12 +158,16 @@ def get_from_release(
             with jar.open("fabric.mod.json", "r", encoding="utf-8") as f:
                 json_content = f.read()
                 json_data = json.loads(json_content)
-            mod = parsers.parse_fabric_mod_json(settings, repo, json_data, release)
+            mod = parsers.parse_fabric_mod_json(
+                base_address, settings, repo, json_data, jar.dir, release
+            )
         elif jar["quilt.mod.json"].exists():
             with jar.open("quilt.mod.json", "r", encoding="utf-8") as f:
                 json_content = f.read()
                 json_data = json.loads(json_content)
-            mod = parsers.parse_quilt_mod_json(settings, repo, json_data, release)
+            mod = parsers.parse_quilt_mod_json(
+                base_address, settings, repo, json_data, jar.dir, release
+            )
         else:
             logger.warning(
                 f"[{settings.repo}] [{release.version}] Skipping because it doesn't have a parsable config file."
@@ -207,13 +212,14 @@ def get_jars_from_releases(
 
 
 def get_meta_from_releases(
+    base_address: str,
     jarpaths: list[tuple[datacls.Release, str]],
     settings: datacls.ModSettings,
     repo: datacls.Repo,
 ) -> list[RMod]:
 
     return [
-        get_from_release(jar_path, settings, repo, release)
+        get_from_release(base_address, jar_path, settings, repo, release)
         for release, jar_path in jarpaths
         if jar_path is not None
     ]
@@ -269,7 +275,7 @@ def get_mod(
     jarpaths = get_jars_from_releases(
         suffix_priority, main_address, settings, repo, releases
     )
-    versions_unfiltered = get_meta_from_releases(jarpaths, settings, repo)
+    versions_unfiltered = get_meta_from_releases(main_address, jarpaths, settings, repo)
     filtered_versions = filter_versions(versions_unfiltered, settings)
 
     versions = list(filtered_versions)
