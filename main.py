@@ -316,7 +316,7 @@ def generate_repo(setts):
     logger.info("Generating output content...")
     file_content = {
         **{f"_note_{name}": value for name, value in setts["notes"].items()},
-        "specVersion": 1,
+        "specVersion": 2,
         "lastUpdated": round(time.time() * 1000),
         "rootId": setts["rootId"],
         "mods": [mod.to_dict() for mod in mods],
