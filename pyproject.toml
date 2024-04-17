@@ -1,23 +1,14 @@
 [tool.poetry]
-name = "gh2repo"
-version = "0.1.0"
+name = "crm1-autorepo"
+version = "0.0.1"
 description = ""
 authors = ["JoJoJux <80523427+J0J0HA@users.noreply.github.com>"]
-license = "GPL"
+license = "MIT License"
 readme = "README.md"
-package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.11"
-hjson = "^3.1.0"
-requests = "^2.31.0"
-pygithub = "^2.3.0"
-dataclasses-json = "^0.6.4"
-environs = "^11.0.0"
-gitpython = "^3.1.42"
-loguru = "^0.7.2"
-aiohttp = "^3.9.3"
-asyncio = "^3.4.3"
+python = "^3.10"
+click = "^8.1.7"
 crm1 = "^0.1.0"
 
 
