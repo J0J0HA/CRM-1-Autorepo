@@ -10,6 +10,7 @@ from typing import Optional
 import hjson
 import requests
 from crm1.spec.v2 import RMod
+from jjjxutils.decorators import entrypoint
 from loguru import logger
 
 from utils import ClonedRepo, UnzippedJar, datacls, download_jar
@@ -171,6 +172,11 @@ def get_from_release(
         else:
             logger.warning(
                 f"[{settings.repo}] [{release.version}] Skipping because it doesn't have a parsable config file."
+            )
+            return
+        if not mod:
+            logger.warning(
+                f"[{settings.repo}] [{release.version}] Skipping because it failed to parse the config file."
             )
             return
 
@@ -420,6 +426,7 @@ def generate_repo_mapping(repos):
     logger.success("Generated repo mapping.")
 
 
+@entrypoint
 def main():
     start = time.time()
     logger.info("Reading config...")
@@ -428,7 +435,3 @@ def main():
     generate_repo(setts)
     generate_repo_mapping(setts["repos"])
     logger.success(f"Finished. Took {time.time() - start:.2f}s.")
-
-
-if __name__ == "__main__":
-    main()
