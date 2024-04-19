@@ -1,7 +1,9 @@
 import os
 import pathlib
+
 from crm1.helpers.versions import range_from_maven_string
 from crm1.spec.v2 import CommonModExt, RDependency, RMod
+from loguru import logger
 
 from ..data import ModSettings, Release, Repo
 
@@ -35,22 +37,9 @@ def parse_quilt_mod_json(
         if metadata.get("icon")
         else None
     )
-    return RMod(
-        id=settings.id or id_,
-        name=metadata.get("name") or settings.repo.rsplit("/", 1)[-1],
-        desc=metadata.get("description") or "",
-        authors=metadata.get("contributors", {}).keys() or repo.authors or repo.owner,
-        version=loader_data.get("version"),
-        game_version=(
-            range_from_maven_string(
-                dependencies.get("cosmicreach") or dependencies.get("cosmic_reach")
-            ).to_string()
-            if (dependencies.get("cosmicreach") or dependencies.get("cosmic_reach"))
-            is not None
-            else None
-        ),
-        url=release.attached_files[-1][1] if release.attached_files else release.link,
-        deps=[
+
+    try:
+        deps = [
             RDependency(
                 name,
                 (
@@ -65,7 +54,27 @@ def parse_quilt_mod_json(
             and name != "cosmicreach"
             and name != "cosmic_quilt"
             and name != "cosmic_reach"
-        ],
+        ]
+    except Exception as e:
+        logger.error(f"Error parsing dependencies for {id_}", e, exc_info=True)
+        return None
+
+    return RMod(
+        id=settings.id or id_,
+        name=metadata.get("name") or settings.repo.rsplit("/", 1)[-1],
+        desc=metadata.get("description") or "",
+        authors=metadata.get("contributors", {}).keys() or repo.authors or repo.owner,
+        version=loader_data.get("version"),
+        game_version=(
+            range_from_maven_string(
+                dependencies.get("cosmicreach") or dependencies.get("cosmic_reach")
+            ).to_string()
+            if (dependencies.get("cosmicreach") or dependencies.get("cosmic_reach"))
+            is not None
+            else None
+        ),
+        url=release.attached_files[0][1] if release.attached_files else release.link,
+        deps=deps,
         ext=CommonModExt(
             modid=loader_data.get("id"),
             icon=icon_path,
