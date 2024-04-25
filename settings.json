@@ -44,6 +44,11 @@
             "devBuilds": true
         },
         {
+            "provider": "github",
+            "repo": "InsertSoda/CraterChat",
+            "devBuilds": true
+        },
+        {
             "provider": "codeberg",
             "repo": "CRModders/distant-cosmos",
             "id": "com.coolgi.distantcosmos",
