@@ -1,8 +1,9 @@
 import os
 import pathlib
 
-from crm1.helpers.versions import range_from_maven_string
+from crm1.helpers.versions import Version, range_from_maven_string
 from crm1.spec.v2 import CommonModExt, RDependency, RMod
+from loguru import logger
 
 from ..data import ModSettings, Release, Repo
 
@@ -21,6 +22,18 @@ def parse_fabric_mod_json(
         if data.get("icon")
         else None
     )
+
+    if (version := data.get("version")) is not None:
+        try:
+            Version.from_string(version)
+        except Exception as e:
+            logger.error(f"Error parsing version {version} for {settings.id or data.get('id')}", e, exc_info=True)
+            logger.info(
+                "This typically means the version format is not using semantic versioning. This is a problem, because comparing versions automatically is no longer possible."
+            )
+            logger.warning("Version will be skipped!")
+            return None
+
     return RMod(
         id=settings.id or data.get("id"),
         name=data.get("name") or settings.repo.rsplit("/", 1)[-1],
