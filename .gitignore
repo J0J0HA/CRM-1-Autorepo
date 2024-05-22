@@ -6,3 +6,4 @@ repo_mapping.hjson
 repo_mapping.json
 builds
 .cache
+*.pyc
