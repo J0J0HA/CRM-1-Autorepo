@@ -13,6 +13,11 @@
         },
         {
             "provider": "codeberg",
+            "repo": "CRModders/kosmic",
+            "devBuilds": true
+        },
+        {
+            "provider": "codeberg",
             "repo": "CRModders/modmenu",
             "devBuilds": true
         },
