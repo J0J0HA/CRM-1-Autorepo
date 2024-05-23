@@ -18,6 +18,11 @@
         },
         {
             "provider": "codeberg",
+            "repo": "EmmaTheMartian/cosmic-presence",
+            "devBuilds": true
+        },
+        {
+            "provider": "codeberg",
             "repo": "EmmaTheMartian/cosmic-graal",
             "devBuilds": true
         },
