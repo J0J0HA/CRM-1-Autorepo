@@ -82,6 +82,12 @@
             "repo": "pietru/CR_OmniPower_Mod",
             "id": "net.pietru.omni_power",
             "devBuilds": true
+        },
+        {
+            "provider": "forgejo",
+            "instance": "https://git.percraft.net:444",
+            "repo": "pietru/CR_Pop_Structures_mod-releases",
+            "devBuilds": true
         }
     ],
     "rootId": "de.jojojux.crm-repo",
