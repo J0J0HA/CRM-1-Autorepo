@@ -88,6 +88,12 @@
             "instance": "https://git.percraft.net:444",
             "repo": "pietru/CR_Pop_Structures_mod-releases",
             "devBuilds": true
+        },
+        {
+            "provider": "forgejo",
+            "instance": "https://git.percraft.net:444",
+            "repo": "pietru/CR_SimpleMachines_Mod-releases",
+            "devBuilds": true
         }
     ],
     "rootId": "de.jojojux.crm-repo",
